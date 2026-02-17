@@ -16,14 +16,14 @@ import Footer from '../../components/Footer.astro';
         <div class="blog-article-meta">
           <span class="blog-post-date">February 2025</span>
           <span class="blog-post-sep">·</span>
-          <span class="blog-post-readtime">15 min read</span>
+          <span class="blog-post-readtime">10 min read</span>
         </div>
         <h1 class="blog-article-title">
           Notes on Building TalesMUD
         </h1>
         <p class="blog-article-subtitle">
-          How a hover-racing game server from 2003, a failed blockchain detour, and an obsession
-          with old BBS door games led to an open-source MUD framework in 2025.
+          From LOTD in 2018 to TalesMUD today — why Go, why Svelte, what MUDs and BBS door
+          games have to do with it, and where this is going.
         </p>
         <div class="blog-post-tags">
           <span class="blog-tag">origin story</span>
@@ -36,66 +36,27 @@ import Footer from '../../components/Footer.astro';
       <div class="blog-article-body">
 
         <p>
-          I have been working on side projects for about 20 years. It started when I picked up
-          programming at 16 — games in C/C++ with SDL and OpenGL, then Java with JOGL, then Unity
-          when that finally existed and I wished I'd had it at 16. Through university, through full-time
-          jobs, the side projects never stopped. Android apps early enough to catch the Google Play
-          store when it was still called the Android Market. A lot of things that shipped, a lot more
-          that didn't.
-        </p>
-
-        <p>
-          Side projects are how I stay sharp. They're where I learn new technologies without the
-          pressure of a production deadline, where I can be genuinely creative with what I already
-          know. And every few years, one of them turns into something worth talking about.
-        </p>
-
-        <p>
-          TalesMUD is one of those.
-        </p>
-
-        <h2>Where This Actually Started</h2>
-
-        <p>
-          The real origin is a game called <strong>NTRS</strong> — Noch Tolleres RennSpiel, don't ask —
-          an OpenGL hover/pod-racing arcade multiplayer I built years ago. It came with a minimalistic
-          C++ server using unix sockets. Basic, but it worked: multiple clients, real-time state,
-          network code I wrote from scratch because that's what you did.
-        </p>
-
-        <p>
-          I never really built anything like that again, and I always missed it. The feeling of
-          something you made running live with other people connected to it.
-        </p>
-
-        <p>
-          I have always been fascinated by RPGs and MMORPGs, even if I was never the person who
-          logged 4000 hours into one. And I knew the history — that the big graphical MMOs didn't
-          appear from nowhere. AberMUD, TinyMUD, DikuMUD. Those came first. They invented the
-          mechanics that EverQuest and WoW refined decades later. Dark Age of Camelot was built by
-          Mark Jacobs, who before that built Dragon's Gate, and before that GemStone — all text-based.
-          The genre tree goes all the way down to a terminal prompt.
+          The RPG genre and multiplayer games have fascinated me for a long time, even if I was
+          never the person who logged 4000 hours into an MMO. I knew the history though —
+          the big graphical MMOs didn't appear from nowhere. AberMUD, TinyMUD, DikuMUD came first.
+          They invented the mechanics that EverQuest and WoW refined decades later. Dark Age of
+          Camelot was built by Mark Jacobs, who before that built Dragon's Gate, and GemStone before
+          that. The genre tree goes all the way down to a terminal prompt.
         </p>
 
         <p>
           And then there were DOOR games. If you remember BBS systems, you remember them. The most
-          famous was <strong>LORD</strong> — Legend of the Red Dragon. You logged into the BBS, selected LORD,
-          and had a fixed number of actions for the day: fight monsters in the forest, visit the
-          inn, maybe challenge another player. A global leaderboard. Seasonal resets. Player
-          marriages. PvP. And eventually, if you were the strongest, you'd face the dragon.
+          famous was <strong>LORD</strong> — Legend of the Red Dragon. You'd log into the BBS, pick LORD,
+          and have a fixed number of actions for the day: fight monsters, visit the inn, challenge
+          another player. Global leaderboard, seasonal resets, PvP. And eventually, if you were
+          strong enough, you'd face the dragon.
         </p>
 
         <p>
-          In hindsight, LORD basically invented the loop that makes mobile games addictive today —
-          daily limited actions, social pressure, a progression ceiling that reset periodically —
-          just forty years earlier on hardware you wouldn't believe.
-        </p>
-
-        <p>
-          Both MUDs and DOOR games have been living in the back of my head for a long time as the
-          kind of thing I wanted to build. A game that's fundamentally text-driven, narrative-rich,
-          multiplayer by default, and playable without installing anything. Something with the depth
-          of a real RPG and the accessibility of a browser tab.
+          LORD basically invented the loop that makes mobile games addictive today — daily limited
+          actions, social pressure, a progression ceiling that reset periodically — just forty years
+          earlier. Both MUDs and DOOR games lived in the back of my head as the kind of thing I
+          wanted to build: text-driven, narrative-rich, multiplayer by default, no install required.
         </p>
 
         <h2>LOTD: The First Attempt (2018)</h2>
