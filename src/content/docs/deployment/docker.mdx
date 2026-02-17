@@ -1,0 +1,174 @@
+---
+title: Docker Deployment
+description: Deploy TalesMUD with Docker and Docker Compose.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+# Docker Deployment
+
+Docker is the recommended way to deploy TalesMUD in production. The included `Dockerfile` and
+`docker-compose.yml` get you from source to running server with one command.
+
+## docker-compose.yml
+
+The included compose file covers a basic deployment:
+
+```yaml
+version: '3'
+services:
+  talesmud:
+    build: .
+    ports:
+      - "8010:8010"
+    environment:
+      - GIN_MODE=release
+      - SQLITE_PATH=/data/talesmud.db
+      - AUTH_ENABLED=false
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=changeme
+    volumes:
+      - ~/volumes/talesmud/data:/data
+```
+
+## Quick Start
+
+<Steps>
+1. **Clone and configure**
+
+   ```bash
+   git clone https://github.com/TalesMUD/talesmud.git
+   cd talesmud
+   cp .env.example .env
+   # Edit .env with production values
+   ```
+
+2. **Start the container**
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. **View logs**
+
+   ```bash
+   docker compose logs -f talesmud
+   ```
+
+4. **Stop**
+
+   ```bash
+   docker compose down
+   ```
+</Steps>
+
+## Building the Image
+
+```bash
+# Build locally
+docker build -t talesmud .
+
+# Run directly
+docker run -d \
+  -p 8010:8010 \
+  -v ~/volumes/talesmud:/data \
+  -e GIN_MODE=release \
+  -e SQLITE_PATH=/data/talesmud.db \
+  -e ADMIN_USER=admin \
+  -e ADMIN_PASSWORD=changeme \
+  talesmud
+```
+
+## Data Persistence
+
+The SQLite database must be persisted outside the container. Mount a volume:
+
+```yaml
+volumes:
+  - ~/volumes/talesmud/data:/data
+```
+
+And set `SQLITE_PATH=/data/talesmud.db`.
+
+<Aside type="caution" title="Don't lose your data">
+  Always mount a volume for the database. Stopping and removing the container without a mounted
+  volume will destroy all game data.
+</Aside>
+
+## Production Environment
+
+For production deployments:
+
+```yaml
+environment:
+  - GIN_MODE=release          # Disables debug logging
+  - LOG_LEVEL=info            # Only info+ logs
+  - SQLITE_PATH=/data/talesmud.db
+  - AUTH_ENABLED=true         # Enable Auth0 authentication
+  - AUTH0_AUDIENCE=https://yourdomain.com/api
+  - AUTH0_DOMAIN=https://your-tenant.auth0.com/
+  - AUTH0_WK_JWKS=https://your-tenant.auth0.com/.well-known/jwks.json
+```
+
+## Health Check
+
+Add a health check to your compose file:
+
+```yaml
+services:
+  talesmud:
+    # ...
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+```
+
+## With Nginx (Reverse Proxy)
+
+For SSL termination and WebSocket proxying, add Nginx to your compose:
+
+```yaml
+services:
+  talesmud:
+    build: .
+    # Don't expose port directly — Nginx handles it
+    environment:
+      - GIN_MODE=release
+      - SQLITE_PATH=/data/talesmud.db
+    volumes:
+      - ~/volumes/talesmud:/data
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - talesmud
+```
+
+See the [Nginx Configuration](/docs/deployment/nginx) guide for the full config.
+
+## Backup
+
+```bash
+# Backup the database
+docker exec talesmud_talesmud_1 sqlite3 /data/talesmud.db \
+  ".backup /data/talesmud.backup.db"
+
+# Copy backup to host
+docker cp talesmud_talesmud_1:/data/talesmud.backup.db ./backups/
+```
+
+## Next Steps
+
+- [Environment Variables](/docs/deployment/environment-variables) — Full config reference
+- [Nginx Configuration](/docs/deployment/nginx) — SSL and WebSocket reverse proxy
+- [Auth0 Setup](/docs/deployment/auth0-setup) — Production authentication
+- [Production Checklist](/docs/deployment/production-checklist) — Pre-launch checklist

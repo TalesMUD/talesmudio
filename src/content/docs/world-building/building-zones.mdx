@@ -1,0 +1,122 @@
+---
+title: Building Zones
+description: How to organize rooms into zones and design connected world areas.
+---
+
+# Building Zones
+
+A zone (or area) is a logical grouping of rooms that share a setting, theme, and difficulty level.
+Zones are defined by the `area` field on rooms — there's no separate zone entity.
+
+## Zone Design Principles
+
+1. **Theme consistency** — All rooms in a zone should feel cohesive (same atmosphere, enemy types)
+2. **Logical navigation** — Players should be able to navigate without getting lost
+3. **Difficulty curve** — Zones should have a clear level range for enemies
+4. **Entry and exit points** — Every zone needs an entry from the previous zone and an exit forward
+
+## Example World Structure (Veilspan)
+
+```
+Z00: Catacombs (Tutorial, Level 1-2)
+    → Z01: Meadows & Forest (Level 2-4)
+    → Z02: Oldtown (Level 2-4, hub area)
+        → Z03: Gloomfen Marsh (Level 3-5)
+            → Z19: Gloomfen Depths (Level 5+)
+```
+
+## ID Conventions
+
+Use consistent room ID patterns within a zone:
+
+| Zone | ID Range | Example |
+|------|----------|---------|
+| Catacombs (Z00) | R0001–R0099 | R0001 (Awakening Chamber) |
+| Meadows (Z01) | R0101–R0199 | R0101 (Emergence Point) |
+| Oldtown (Z02) | R0201–R0299 | R0201 (Town Gate) |
+| Gloomfen Marsh (Z03) | R0301–R0399 | R0301 (Marsh Gate Trail) |
+
+## Zone Map Design
+
+Before creating rooms in the Creator UI, sketch your zone layout:
+
+```
+[Entry Room] — east — [Path Room] — east — [Boss Room]
+                          |
+                        south
+                          |
+                      [Side Room] — south — [Secret Cache]
+```
+
+Use coordinates (`x`, `y`, `z`) to match the layout in the Creator UI world map:
+
+```
+Entry Room:  x=0, y=0, z=0
+Path Room:   x=1, y=0, z=0
+Side Room:   x=1, y=-1, z=0
+Boss Room:   x=2, y=0, z=0
+Secret Cache: x=1, y=-2, z=0
+```
+
+## Zone Content Files
+
+World content is version-controlled in the `zones/` directory:
+
+```
+zones/
+└── Z03_gloomfen_marsh/
+    ├── README.md          # Zone overview and lore
+    ├── rooms/
+    │   ├── R0301_marsh_gate.md
+    │   ├── R0302_bog_path.md
+    │   └── R0310_deep_marsh.md
+    ├── npcs/
+    │   └── ENM_marsh_wolf.md
+    └── quests/
+        └── QST0301_marsh_expedition.md
+```
+
+The YAML export in `data/` is generated from these Markdown files via the exporter tool.
+
+## Creating a Zone: Step by Step
+
+1. **Plan the layout** on paper or in a diagram tool
+2. **Create rooms** in the Creator UI with consistent `area` field
+3. **Set coordinates** to match your layout plan
+4. **Link exits** between adjacent rooms
+5. **Add spawners** with appropriate enemies for the zone's level range
+6. **Add quest-giver NPCs** in key rooms
+7. **Test navigation** — walk through every exit manually
+8. **Add atmosphere scripts** to room entry events
+
+## Zone Transitions
+
+Connect zones via explicit exits. Zone transitions are just regular exits between rooms in different areas:
+
+```
+Oldtown Gate Room (area: oldtown)
+    ↓ south exit
+Marsh Gate Trail (area: gloomfen)
+```
+
+Consider adding transition narration via an `onEnterScript` on the first room of the new zone:
+
+```lua
+-- Fires when player enters the first marsh room
+local charID = ctx.character.id
+
+tales.game.msgToCharacter(charID,
+  "\nThe cobblestones give way to muddy earth beneath your feet.\n" ..
+  "The air grows thick and damp. You have left the safety of Oldtown behind.")
+
+-- Auto-grant zone exploration quest
+if not tales.quests.isActive(charID, "QST0301") then
+  tales.quests.grantQuest(charID, "QST0301")
+end
+```
+
+## Next Steps
+
+- [Creating Rooms](/docs/world-building/creating-rooms) — Room configuration reference
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Zone population
+- [The Content Editor](/docs/world-building/content-editor) — Using the visual tools

@@ -1,0 +1,145 @@
+---
+title: Nginx Configuration
+description: Configure Nginx as a reverse proxy for TalesMUD with SSL and WebSocket support.
+---
+
+# Nginx Configuration
+
+TalesMUD requires Nginx configuration that handles both standard HTTP and the long-lived WebSocket
+connections used for gameplay. The key challenge is keeping WebSocket connections alive.
+
+## Complete Configuration
+
+This is the production configuration used for Veilspan (`veilspan.com`):
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+upstream talesmud {
+    server 127.0.0.1:8010;
+}
+
+# HTTP → HTTPS redirect
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # TLS (Let's Encrypt)
+    ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # WebSocket: /ws
+    location /ws {
+        proxy_pass http://talesmud;
+        proxy_http_version 1.1;
+
+        # Required for WebSocket upgrade
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Keep WebSocket alive (default timeout is 60s — far too short)
+        proxy_read_timeout  3600s;
+        proxy_send_timeout  3600s;
+    }
+
+    # REST API: /api/
+    location /api/ {
+        proxy_pass http://talesmud;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Admin UI: /admin/
+    location /admin/ {
+        proxy_pass http://talesmud;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Health check
+    location /health {
+        proxy_pass http://talesmud;
+    }
+
+    # Everything else (SPA, game client)
+    location / {
+        proxy_pass http://talesmud;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## Key Points
+
+### WebSocket Timeouts
+
+The default Nginx proxy timeout is 60 seconds. MUD sessions can be idle for much longer.
+Set both `proxy_read_timeout` and `proxy_send_timeout` to at least 1 hour for the `/ws` location:
+
+```nginx
+proxy_read_timeout  3600s;
+proxy_send_timeout  3600s;
+```
+
+### WebSocket Upgrade Headers
+
+The `map` block and the two `proxy_set_header` directives in the `/ws` location are
+**required** for WebSocket connections to work:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# Inside location /ws:
+proxy_set_header Upgrade    $http_upgrade;
+proxy_set_header Connection $connection_upgrade;
+```
+
+## SSL with Let's Encrypt (Certbot)
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain certificate
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Auto-renewal (Certbot installs a timer automatically)
+sudo certbot renew --dry-run
+```
+
+## Next Steps
+
+- [Docker Deployment](/docs/deployment/docker) — Containerized deployment
+- [Production Checklist](/docs/deployment/production-checklist) — Pre-launch checks

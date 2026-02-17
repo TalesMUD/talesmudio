@@ -1,0 +1,75 @@
+---
+title: Character Progression
+description: XP, leveling, attribute distribution, and exploration rewards.
+---
+
+# Character Progression
+
+Characters gain experience points (XP) and level up over time. Each level-up grants
+distributable attribute points that players spend to customize their character.
+
+## XP Sources
+
+| Source | Amount |
+|--------|--------|
+| Combat kill | Enemy's `xpReward` value, split among participants |
+| Quest completion | Quest's `rewards.xp` value |
+| Room discovery | Small bonus for entering a new room |
+| Area discovery | Larger bonus for entering a new zone |
+| Script grant | `tales.characters.giveXP(charID, amount)` |
+
+## Leveling Curve
+
+The leveling curve scales exponentially. Exact XP thresholds are defined in
+`pkg/mudserver/game/leveling/`. Higher levels require significantly more XP per level.
+
+## Level-Up Benefits
+
+On reaching a new level, the character:
+1. Gains **distributable attribute points** (amount configurable)
+2. HP and mana maximums are recalculated
+3. Level-dependent skills become available
+4. A level-up message is sent to the player
+
+## Spending Attribute Points
+
+Use the `spend` command to distribute points:
+
+```
+> spend str
+You spend 1 point on Strength. (STR: 12 → 13)
+Remaining points: 2
+
+> spend int 2
+You spend 2 points on Intelligence. (INT: 10 → 12)
+Remaining points: 0
+```
+
+Points are tracked in `character.unspentAttributePoints` and spent into
+`character.spentAttributePoints[stat]`.
+
+## Exploration XP
+
+Characters receive bonus XP the first time they:
+- **Enter a room** they've never visited — tracked in `character.discoveredRooms`
+- **Enter a zone** they've never visited — tracked in `character.discoveredAreas`
+
+This encourages exploration and rewards players for mapping the world.
+
+## Level Cap
+
+The default global max level is configurable. Individual characters can have a `maxLevelCap`
+that overrides the global cap — useful for guest or trial characters capped at a lower level.
+
+## Respawn and Death
+
+When a character dies (HP reaches 0):
+- Character is moved to their `boundRoomId` (set via `bind` command) or the default starting room
+- Character respawns at 50% HP and mana
+- No item or XP loss on death
+
+## Next Steps
+
+- [Combat System](/docs/game-systems/combat) — How XP is earned in combat
+- [Characters & Classes](/docs/core-concepts/characters) — Attribute system
+- [Skills & Spells](/docs/game-systems/skills-and-spells) — Level-locked skills

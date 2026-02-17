@@ -1,0 +1,81 @@
+---
+---
+<div class="arch-diagram">
+  <div class="arch-row">
+    <div class="arch-box accent">Browser</div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-arrow">↕<span class="arch-arrow-label">WebSocket + REST</span></div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-box teal">HTTP API (Gin)</div>
+    <div class="arch-box teal">MUD Engine</div>
+    <div class="arch-box teal">WebSocket Handler</div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-arrow">↓</div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-box">Users</div>
+    <div class="arch-box">Characters</div>
+    <div class="arch-box">Rooms</div>
+    <div class="arch-box">Items</div>
+    <div class="arch-box">NPCs</div>
+    <div class="arch-box">Quests</div>
+    <div class="arch-box">Scripts</div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-arrow">↓<span class="arch-arrow-label">Service Layer (Facade)</span></div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-box dim">SQLite Repository (JSON Documents)</div>
+  </div>
+</div>
+
+<div class="arch-desc-grid">
+  <div class="arch-desc-item">
+    <span class="arch-desc-label" style="color: var(--color-amber)">Browser</span>
+    <span class="arch-desc-text">Svelte game client + admin UI, connected via WebSocket for real-time play and REST API for data management.</span>
+  </div>
+  <div class="arch-desc-item">
+    <span class="arch-desc-label" style="color: var(--color-teal)">Go Server</span>
+    <span class="arch-desc-text">Gin-based HTTP API, WebSocket MUD server, and game engine running concurrent goroutines for game loop and combat.</span>
+  </div>
+  <div class="arch-desc-item">
+    <span class="arch-desc-label" style="color: var(--color-text-muted)">SQLite</span>
+    <span class="arch-desc-text">Single-file database with JSON document storage. No external database required — perfect for self-hosting.</span>
+  </div>
+</div>
+
+<style>
+  .arch-desc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .arch-desc-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .arch-desc-label {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .arch-desc-text {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .arch-desc-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

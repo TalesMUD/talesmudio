@@ -1,0 +1,138 @@
+---
+title: Development Setup
+description: Set up a TalesMUD development environment for contributing.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+# Development Setup
+
+This guide covers setting up TalesMUD for active development, including hot reload for the
+backend and Vite dev servers for the frontend.
+
+## Prerequisites
+
+| Tool | Version | Install |
+|------|---------|---------|
+| Go | 1.24+ | [go.dev/dl](https://go.dev/dl) |
+| Node.js | 20+ | [nodejs.org](https://nodejs.org) |
+| Make | Any | `apt install make` / `brew install make` |
+| Git | Any | [git-scm.com](https://git-scm.com) |
+
+## Setup
+
+<Steps>
+1. **Fork and clone**
+
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/talesmud.git
+   cd talesmud
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   # Go dependencies
+   go mod download
+
+   # Frontend dependencies
+   cd public/app && npm install && cd ../..
+   cd public/mud-client && npm install && cd ../..
+   ```
+
+3. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   # Defaults are fine for local development
+   ```
+
+4. **Start development servers**
+
+   ```bash
+   # Option A: All at once (4 parallel jobs)
+   make run
+
+   # Option B: Individually (in separate terminals)
+   make run-server      # Go backend on :8010
+   make run-frontend    # Admin UI Vite dev server
+   make run-mud-client  # Game client Vite dev server
+   ```
+</Steps>
+
+## Project Structure
+
+```
+talesmud/
+├── cmd/tales/             # Main entry point
+├── pkg/
+│   ├── entities/          # Go data model structs
+│   │   ├── characters/    # Character, Race, Class
+│   │   ├── rooms/         # Room
+│   │   ├── items/         # Item (types, quality, slots)
+│   │   ├── npcs/          # NPC, spawners
+│   │   ├── quests/        # Quest, QuestProgress
+│   │   ├── dialogs/       # Dialog trees
+│   │   ├── skills/        # Skills (includes seed data)
+│   │   └── combat/        # Combat instance
+│   ├── mudserver/         # WebSocket game server
+│   │   └── game/
+│   │       ├── commands/  # Command handlers (40+ files)
+│   │       ├── combat/    # Combat logic
+│   │       └── leveling/  # XP curves
+│   ├── server/            # HTTP API (Gin routes + handlers)
+│   ├── service/           # Business logic facade
+│   ├── repository/        # SQLite data access layer
+│   └── scripts/           # Lua scripting engine
+├── public/
+│   ├── app/               # Admin frontend (Svelte + Vite)
+│   └── mud-client/        # Game client (Svelte + xterm.js)
+├── zones/                 # World content (Markdown source)
+├── data/                  # World YAML export (generated)
+└── docs/                  # Design documentation
+```
+
+## Adding a New Command
+
+1. Create `pkg/mudserver/game/commands/yourcommand.go`
+2. Implement the `Command` interface:
+
+   ```go
+   type YourCommand struct{}
+
+   func (c *YourCommand) Keys() []string {
+       return []string{"yourcommand", "yc"}
+   }
+
+   func (c *YourCommand) Execute(ctx *GameContext, msg string) {
+       // Command logic here
+       ctx.SendToOrigin("Command output!")
+   }
+   ```
+
+3. Register the command in `commandprocessor.go`
+
+## Running Tests
+
+```bash
+# Run all tests
+go test ./...
+
+# Run specific package tests
+go test ./pkg/mudserver/game/...
+
+# Run the combat simulator
+make run-combat-simulator
+```
+
+## Code Style
+
+- Follow standard Go style (`gofmt`)
+- Use `logrus` for logging (already imported everywhere as `log`)
+- Prefer explicit error handling over panics
+- Service layer methods should not import `mudserver` packages (maintain layering)
+
+## Next Steps
+
+- [Code Structure](/docs/contributing/code-structure) — Architectural guidance
+- [Pull Request Guidelines](/docs/contributing/pull-requests) — How to submit PRs

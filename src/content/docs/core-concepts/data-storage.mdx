@@ -1,0 +1,138 @@
+---
+title: Data Storage
+description: How TalesMUD stores data — SQLite, JSON documents, and the repository pattern.
+---
+
+# Data Storage
+
+TalesMUD uses **SQLite** with a JSON document storage pattern. All entities are stored as
+serialized JSON in type-specific SQLite tables. This gives the flexibility of document storage
+with the reliability of a single-file relational database.
+
+## Why SQLite?
+
+- **Zero external dependencies** — no database server to install or manage
+- **Single file** — the entire game world fits in one file (easy to backup, copy, restore)
+- **WAL mode** — Write-Ahead Logging enables concurrent reads with writes
+- **Sufficient performance** — MUD workloads are well within SQLite's capabilities
+
+## Schema Pattern
+
+All entity tables follow the same schema:
+
+```sql
+CREATE TABLE IF NOT EXISTS rooms (
+    id   TEXT PRIMARY KEY,
+    data TEXT NOT NULL,       -- JSON-serialized entity
+    created_at DATETIME,
+    updated_at DATETIME
+);
+```
+
+The `data` column stores the full entity as JSON. This means:
+- Adding new fields doesn't require schema migrations
+- The entity struct in Go defines the shape
+- Old records with missing fields get zero-values on deserialization
+
+## Collections
+
+| Collection | Description |
+|-----------|-------------|
+| `users` | User accounts and authentication state |
+| `characters` | Player characters with all attributes and inventory |
+| `rooms` | Room definitions including exits, actions, spawners |
+| `items` | Item instances and templates |
+| `npcs` | NPC templates and spawned instances |
+| `spawners` | Spawner configurations (embedded in room data) |
+| `dialogs` | Dialog tree definitions |
+| `conversations` | Active player-NPC conversation sessions |
+| `quests` | Quest definitions |
+| `quest_progress` | Per-character quest progress tracking |
+| `skills` | Skill definitions |
+| `scripts` | Lua script definitions and code |
+| `loot_tables` | Loot table definitions |
+| `settings` | Server-level settings |
+
+## Generic Repository
+
+All repositories use a generic implementation (`pkg/repository/sqlite_generic.go`):
+
+```go
+type Repository[T any] interface {
+    FindAll() ([]*T, error)
+    FindByID(id string) (*T, error)
+    Create(entity *T) (*T, error)
+    Update(id string, entity *T) error
+    Delete(id string) error
+}
+```
+
+Each entity type gets its own table and repository:
+
+```go
+// pkg/repository/sqlite_factory.go
+func NewRoomsRepository(db *sql.DB) repository.RoomsRepository {
+    return newSQLiteGenericRepository[entities.Room](db, "rooms")
+}
+```
+
+## Data Model Patterns
+
+### Base Entity
+
+All entities inherit from a base entity with a UUID:
+
+```go
+type Entity struct {
+    ID      string    `json:"id"`
+    Created time.Time `json:"created,omitempty"`
+    Updated time.Time `json:"updated,omitempty"`
+}
+```
+
+### Template vs Instance (Items and NPCs)
+
+Items and NPCs follow a template/instance pattern:
+- **Template**: The blueprint, stored with `isTemplate: true`
+- **Instance**: Created from a template, has `templateId` pointing to its source
+
+```go
+type Item struct {
+    IsTemplate     bool   `json:"isTemplate"`
+    TemplateID     string `json:"templateId,omitempty"`
+    InstanceSuffix string `json:"instanceSuffix,omitempty"`
+    // ...
+}
+```
+
+When a player picks up an item or an NPC spawns, the template is copied into a new instance
+with a unique suffix.
+
+## World Import/Export
+
+The world can be exported to YAML files and re-imported. This supports:
+- Version-controlling world content as text files
+- Bulk content creation via YAML
+- Sharing world content between servers
+
+See the [World Building](/docs/world-building/content-editor) section for details.
+
+## Backup Strategy
+
+To backup the entire game state:
+
+```bash
+# Stop the server or use SQLite's online backup
+cp talesmud.db talesmud.db.backup
+
+# Or with SQLite CLI
+sqlite3 talesmud.db ".backup talesmud.backup.db"
+```
+
+The single-file nature of SQLite makes backups trivial. Consider running a cron job to
+copy the database file to a remote location.
+
+## Next Steps
+
+- [Architecture Overview](/docs/core-concepts/architecture) — How layers connect
+- [Creating Rooms](/docs/world-building/creating-rooms) — Adding content to the database

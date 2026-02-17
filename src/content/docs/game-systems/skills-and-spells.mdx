@@ -1,0 +1,150 @@
+---
+title: Skills & Spells
+description: All 29 default skills across 6 classes, with effects and resource costs.
+---
+
+# Skills & Spells
+
+TalesMUD ships with **29 default skills** across the six classes. Skills are equipped (up to 4)
+and used via the `cast` command in combat.
+
+## Using Skills
+
+```
+skills              — List all available and equipped skills
+cast [skill_name]   — Use an equipped skill in combat
+```
+
+Skills are locked during active combat — equip before engaging.
+
+## Resource Types
+
+| Type | Classes | Description |
+|------|---------|-------------|
+| **Cooldown** | Warrior, Rogue, Ranger | Skill available after N rounds |
+| **Mana** | Mage, Cleric, Druid | Costs mana to use |
+
+## Warrior Skills (STR Scaling, Cooldown-Based)
+
+| Skill | Level | Cooldown | Effect | Description |
+|-------|-------|----------|--------|-------------|
+| **Power Strike** | 1 | 3 rounds | 150% weapon damage | A powerful strike scaling with STR |
+| **Shield Bash** | 5 | 4 rounds | Damage + stun 1 round | Bash with shield, stunning the target |
+| **Battle Cry** | 10 | 5 rounds | +30% attack, 3 rounds | Rally cry increases attack power |
+| **Cleave** | 15 | 4 rounds | 80% damage to ALL enemies | Sweeping arc hits all enemies |
+| **Berserker Rage** | 20 | 6 rounds | +50% attack / -25% defense | Rage mode for 3 rounds |
+
+## Rogue Skills (DEX Scaling, Cooldown-Based)
+
+| Skill | Level | Cooldown | Effect | Description |
+|-------|-------|----------|--------|-------------|
+| **Backstab** | 1 | 3 rounds | 200% DEX damage | Strike from shadows for massive damage |
+| **Poison Strike** | 5 | 4 rounds | DoT, 3 rounds | Coats blade with poison |
+| **Evasion** | 10 | 5 rounds | +75% dodge, 2 rounds | Heightened reflexes |
+| **Shadow Strike** | 15 | 5 rounds | DEX damage, ignores armor | Pierces through defense entirely |
+| **Flurry** | 20 | 6 rounds | 3 hits × 60% damage | Three rapid strikes |
+
+## Mage Skills (INT Scaling, Mana-Based)
+
+| Skill | Level | Mana Cost | Effect | Description |
+|-------|-------|-----------|--------|-------------|
+| **Fireball** | 1 | 8 | INT damage | Classic fire projectile |
+| **Frost Shield** | 1 | 6 | +50% defense, 2 rounds | Ice barrier |
+| **Lightning Bolt** | 5 | 15 | INT damage, ignores armor | Armor-piercing lightning |
+| **Arcane Burst** | 10 | 20 | INT damage to ALL enemies | AoE arcane explosion |
+| **Mana Shield** | 15 | 12 | Absorbs damage with mana | Shield that converts HP damage to mana drain |
+
+## Cleric Skills (WIS Scaling, Mana-Based)
+
+| Skill | Level | Mana Cost | Effect | Description |
+|-------|-------|-----------|--------|-------------|
+| **Heal** | 1 | 8 | Restore HP | Channel divine energy to heal self |
+| **Holy Strike** | 1 | 6 | Damage + self-heal | Strike that heals on hit |
+| **Shield of Faith** | 5 | 10 | +40% defense, 3 rounds | Divine protection |
+| **Smite** | 10 | 15 | WIS damage | Holy wrath |
+| **Divine Light** | 15 | 25 | Large HP restore | Powerful self-heal |
+
+## Ranger Skills (DEX Scaling, Cooldown-Based)
+
+| Skill | Level | Cooldown | Effect | Description |
+|-------|-------|----------|--------|-------------|
+| **Aimed Shot** | 1 | 3 rounds | 150% DEX damage | Careful precision shot |
+| **Volley** | 5 | 4 rounds | 70% DEX damage to ALL enemies | Arrow volley |
+| **Nature's Gift** | 10 | 5 rounds | Heal 30% max HP | Draw on nature's energy |
+| **Pin Down** | 15 | 5 rounds | Damage + -50% defense debuff | Pins target, reducing defense |
+
+## Druid Skills (INT/WIS Scaling, Mana-Based)
+
+| Skill | Level | Mana Cost | Effect | Description |
+|-------|-------|-----------|--------|-------------|
+| **Wrath** | 1 | 6 | INT damage | Nature's fury |
+| **Rejuvenation** | 1 | 8 | HoT, 3 rounds | Regenerate health over time |
+| **Entangle** | 5 | 10 | -40% attack debuff, 2 rounds | Roots reduce target attack |
+| **Starfire** | 10 | 18 | INT damage (heavy) | Powerful starlight beam |
+| **Barkskin** | 15 | 12 | +60% defense, 3 rounds | Bark armor coating |
+
+## Skill Data Structure
+
+Skills are stored in the database with the following structure:
+
+```go
+type Skill struct {
+    ID            string   // e.g., "warrior_power_strike"
+    Name          string
+    ClassIDs      []string // classes that can use this skill
+    LevelRequired int32
+
+    Description string
+    ResourceType ResourceType // "cooldown" or "mana"
+    CooldownRounds int32
+    ManaCost       int32
+
+    Target      TargetType  // self, enemy, allEnemies
+    Effect      EffectType  // damage, heal, buff, debuff, dot, hot
+    ScalingAttr string      // "STR", "DEX", "INT", "WIS", "maxhp"
+    BasePower   int32
+    ScalingFactor float32
+
+    Duration    int32     // rounds (for buffs/DoTs)
+    BuffStat    string    // stat to buff/debuff
+    BuffPercent float32   // e.g., 0.30 = +30%
+    IgnoresDefense bool   // armor-piercing
+    HitCount    int32     // multi-hit (e.g., Flurry = 3)
+
+    SecondaryEffect     EffectType
+    SecondaryTarget     TargetType
+    SecondaryBasePower  int32
+    SecondaryScaling    float32
+}
+```
+
+## Adding Custom Skills
+
+Custom skills can be added via the Creator UI (**Skills → New**) or via the REST API:
+
+```bash
+curl -X POST http://localhost:8010/api/skills \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Thunder Clap",
+    "classIds": ["warrior"],
+    "levelRequired": 8,
+    "description": "Slam the ground, dealing AoE damage and stunning enemies.",
+    "resourceType": "cooldown",
+    "cooldownRounds": 5,
+    "target": "allEnemies",
+    "effect": "damage",
+    "scalingAttr": "STR",
+    "basePower": 3,
+    "scalingFactor": 1.2,
+    "duration": 1,
+    "buffStat": "stun"
+  }'
+```
+
+## Next Steps
+
+- [Combat System](/docs/game-systems/combat) — How skills are used in combat
+- [Status Effects](/docs/game-systems/status-effects) — DoT, HoT, buff, debuff details
+- [Mana System](/docs/game-systems/mana-system) — Mana pools and regeneration

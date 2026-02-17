@@ -1,0 +1,92 @@
+---
+title: Introduction
+description: What TalesMUD is and why it exists.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Introduction to TalesMUD
+
+**TalesMUD** is an open-source framework for building browser-based Multi-User Dungeons (MUDs).
+It provides a complete, production-ready platform — backend, frontend, content editor, and all
+core RPG systems — so you can focus on building your world rather than your engine.
+
+## What is a MUD?
+
+A MUD (Multi-User Dungeon) is a text-based multiplayer online game. Players navigate a world
+described in prose, interact with other players and NPCs, fight monsters, complete quests, and
+advance their characters — all through typed commands.
+
+MUDs pioneered online multiplayer RPGs in the late 1980s. TalesMUD brings the format into the
+modern web: no telnet, no legacy clients, just a browser tab.
+
+## What TalesMUD Provides
+
+<CardGrid>
+  <Card title="Go Backend" icon="setting">
+    A single Go binary embeds the game server, HTTP API, and Svelte frontend. SQLite persistence means zero external dependencies.
+  </Card>
+  <Card title="Svelte Game Client" icon="laptop">
+    A terminal-style browser game client built with Svelte and xterm.js. Minimap, tab widgets, quest log, inventory panels.
+  </Card>
+  <Card title="Web Content Editor" icon="pencil">
+    CRUD interface for all game entities: rooms, NPCs, items, quests, dialog trees, scripts, and loot tables.
+  </Card>
+  <Card title="Complete RPG Systems" icon="star">
+    Combat, progression, skills, quests, dialogs, merchants, Lua scripting — all built-in and extensible.
+  </Card>
+</CardGrid>
+
+## Key Features
+
+### Real-Time Multiplayer
+WebSocket-based communication delivers instant feedback for movement, combat, chat, and events.
+Multiple players share the same world in real time.
+
+### Turn-Based Combat System
+Initiative rolls (1d20 + DEX modifier), auto-attack, 29+ class skills and spells across 6 classes,
+status effects (stun, DoT, HoT, buffs, debuffs), and full XP/loot distribution on kill.
+
+### Flexible Quest System
+Data-driven quests support six objective types: **Kill**, **Collect**, **Deliver**, **Visit**, **Talk**,
+and **Custom Lua**. Quest progress is tracked automatically. Prerequisite chains, repeatable quests,
+and NPC dialog integration are all built-in.
+
+### Lua Scripting Engine
+Extend any aspect of gameplay with Lua scripts. Eight API modules give you access to items, rooms,
+characters, NPCs, dialogs, quests, game messaging, and utilities. Scripts run in a sandboxed VM pool
+with a 5-second timeout.
+
+### Genre-Agnostic Design
+The framework's systems are setting-neutral. The same combat engine that powers a fantasy dungeon
+can drive a sci-fi space station or a horror survival game. Build any world you can describe.
+
+## The Live Demo: Veilspan
+
+[Veilspan](https://veilspan.com) is the official demo world — a fantasy adventure in the ruins of
+Aethermoor, built entirely on TalesMUD. It's a real game, not a tech demo, and it runs the current
+development version of the framework.
+
+Play it to see what's possible before you start building.
+
+## Technology Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Go 1.24, Gin, Gorilla WebSocket |
+| Database | SQLite (via `modernc.org/sqlite`) |
+| Scripting | Lua (via `gopher-lua`) |
+| Frontend | Svelte 4, Vite, xterm.js |
+| Auth (optional) | Auth0 JWT, JWKS validation |
+| Infrastructure | Docker, Docker Compose, GitHub Actions |
+
+## Next Steps
+
+<CardGrid>
+  <Card title="Installation" icon="add-document">
+    Get TalesMUD running on your machine. [→ Installation](/docs/getting-started/installation)
+  </Card>
+  <Card title="Quick Start" icon="rocket">
+    Build and run your first server in under 10 minutes. [→ Quick Start](/docs/getting-started/quick-start)
+  </Card>
+</CardGrid>

@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ============================================================
+   FONTS
+   ============================================================ */
+:root {
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ============================================================
+   TALESMUD BRAND COLORS (used in both landing and docs)
+   ============================================================ */
+:root {
+  --color-bg: #0a0a0f;
+  --color-bg-2: #12121a;
+  --color-bg-3: #1a1a28;
+  --color-surface: #1e1e2e;
+  --color-surface-2: #252535;
+  --color-border: #2a2a3d;
+
+  --color-amber: #f5a623;
+  --color-amber-dim: #c4851a;
+  --color-amber-glow: rgba(245, 166, 35, 0.15);
+  --color-teal: #38bdf8;
+  --color-teal-dim: #0ea5e9;
+  --color-crimson: #ef4444;
+  --color-emerald: #22c55e;
+
+  --color-text: #e4e4e7;
+  --color-text-muted: #a1a1aa;
+  --color-text-dim: #71717a;
+}
+
+/* ============================================================
+   STARLIGHT THEME OVERRIDES
+   ============================================================ */
+:root {
+  --sl-font: var(--font-body);
+  --sl-font-mono: var(--font-mono);
+
+  --sl-color-accent-low: #1a1a28;
+  --sl-color-accent: #f5a623;
+  --sl-color-accent-high: #fde68a;
+
+  --sl-color-white: #e4e4e7;
+  --sl-color-gray-1: #a1a1aa;
+  --sl-color-gray-2: #71717a;
+  --sl-color-gray-3: #52525b;
+  --sl-color-gray-4: #3f3f46;
+  --sl-color-gray-5: #2a2a3d;
+  --sl-color-gray-6: #1e1e2e;
+  --sl-color-black: #0a0a0f;
+
+  --sl-color-bg: #0d0d18;
+  --sl-color-bg-nav: #0a0a0f;
+  --sl-color-bg-sidebar: #0d0d18;
+  --sl-color-hairline: #2a2a3d;
+  --sl-color-text: #e4e4e7;
+  --sl-color-text-accent: #f5a623;
+}
+
+/* Starlight header */
+.site-title {
+  font-family: var(--font-display) !important;
+  font-weight: 700;
+  color: var(--color-amber) !important;
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+/* Starlight sidebar */
+.sidebar-pane {
+  border-right: 1px solid var(--color-border);
+}
+
+/* Docs headings */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  font-family: var(--font-display);
+}
+
+.sl-markdown-content h1 {
+  color: var(--color-amber);
+}
+
+/* Code blocks */
+.sl-markdown-content pre,
+.sl-markdown-content code {
+  font-family: var(--font-mono);
+}
+
+/* Links */
+.sl-markdown-content a {
+  color: var(--color-teal);
+}
+
+.sl-markdown-content a:hover {
+  color: var(--color-amber);
+}
+
+/* Callout/aside overrides */
+.starlight-aside {
+  border-left-color: var(--color-amber);
+}
+
+/* ============================================================
+   GLOBAL BODY STYLES (applies to non-Starlight pages too)
+   ============================================================ */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-amber-dim);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-amber-glow);
+  color: var(--color-amber);
+}

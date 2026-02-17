@@ -1,0 +1,148 @@
+---
+title: Combat System
+description: Turn-based combat mechanics — initiative, auto-attack, skills, flee, and loot.
+---
+
+# Combat System
+
+TalesMUD uses a turn-based combat system with initiative, auto-attacks, class skills and spells,
+status effects, and full loot/XP distribution on defeat.
+
+## Starting Combat
+
+Combat begins when a player uses the `attack` command:
+
+```
+> attack goblin
+You attack the Cave Goblin!
+Initiative roll: 15 (your DEX mod: +2, roll: 13)
+Cave Goblin initiative: 8
+You act first!
+```
+
+The `attack` command aliases: `a`, `hit`
+
+## Initiative
+
+Turn order is determined by rolling 1d20 + DEX modifier for each combatant:
+
+```
+initiative_score = d20_roll + DEX_modifier
+```
+
+Higher scores act first. In case of tie, player acts first.
+
+## Combat Instance
+
+Once combat starts, a `CombatInstance` tracks:
+- All player participants
+- All enemy participants
+- Current turn order
+- Active status effects per combatant
+- Skill cooldowns per combatant
+- Combat state (active/ending)
+
+## Auto-Attack
+
+Each combat round, combatants auto-attack their target. Damage formula:
+
+```
+base_damage = weapon_damage + primary_attribute_modifier
+final_damage = max(1, base_damage - target_armor_defense)
+```
+
+Physical classes use STR or DEX modifier; magic classes use INT or WIS.
+
+## Combat Commands
+
+| Command | Aliases | Description |
+|---------|---------|-------------|
+| `attack [target]` | `a`, `hit` | Attack a target, start or continue combat |
+| `cast [skill]` | `spell` | Cast an equipped skill or spell |
+| `defend` | `d`, `guard` | Defensive stance — +50% defense for this round |
+| `flee` | `run`, `escape` | Attempt to flee combat |
+| `skills` | `spells`, `abilities` | List equipped skills and cooldowns |
+| `status` | `cs`, `combat` | Show combat status and HP |
+| `bind` | — | Set current room as respawn point |
+
+## Skills and Spells
+
+Players can equip up to **4 skills** simultaneously. Skills are class-specific and unlocked
+by level. See [Skills & Spells](/docs/game-systems/skills-and-spells) for the full list.
+
+```
+> cast fireball
+You hurl a ball of fire at the Cave Goblin for 18 damage! [Mana: 12/20]
+The Cave Goblin is on fire! (DoT: 3 damage for 3 rounds)
+```
+
+## Defensive Stance
+
+The `defend` command increases defense by 50% for the current round:
+
+```
+> defend
+You take a defensive stance. Your defense is increased by 50%.
+```
+
+## Flee Mechanic
+
+Flee success is based on DEX:
+
+```
+flee_chance = 50% + (DEX_modifier * 5%)
+```
+
+On success: combat ends, player moves to a random adjacent room.
+On failure: the enemy gets a free attack.
+
+```
+> flee
+You attempt to flee... (DEX mod: +3 → 65% chance)
+Success! You escape the combat and stumble into the corridor.
+```
+
+## Status Effects
+
+Status effects apply buffs, debuffs, damage over time (DoT), or healing over time (HoT):
+
+| Effect Type | Description |
+|-------------|-------------|
+| `stun` | Target skips their next action |
+| `dot` | Damage over time — ticks each round for N rounds |
+| `hot` | Healing over time — heals each round for N rounds |
+| `buff` | Increases a stat by a percentage (attack, defense, dodge) |
+| `debuff` | Decreases a stat by a percentage |
+| `mana_shield` | Absorbs damage by consuming mana |
+
+## Combat Resolution
+
+When all enemies are defeated:
+1. XP calculated from each defeated enemy's `xpReward`
+2. XP divided among all player participants
+3. Loot table checked — items rolled and added to the room
+4. Gold dropped to the room (if enemy has gold configured)
+5. Quest kill objectives updated for all participants
+6. Death messages sent to the room
+7. NPC instance removed or flagged for respawn
+
+## Death and Respawn
+
+When a player's HP reaches 0:
+1. Combat ends
+2. Player is moved to their bound respawn room (or the starting room)
+3. Player respawns at 50% HP and mana
+4. Death message sent to the room
+
+Set your respawn point with `bind` in any room that allows binding.
+
+## XP and Loot Distribution
+
+XP is split evenly among all players in the combat instance. Loot drops to the room and
+is available to anyone (first-come first-served unless a group loot system is in place).
+
+## Next Steps
+
+- [Skills & Spells](/docs/game-systems/skills-and-spells) — Full skill list by class
+- [Status Effects](/docs/game-systems/status-effects) — Detailed status effect reference
+- [Loot Tables](/docs/game-systems/loot-tables) — Configure enemy drops

@@ -1,0 +1,172 @@
+---
+title: Architecture Overview
+description: How TalesMUD is structured — layers, components, and data flow.
+---
+
+# Architecture Overview
+
+TalesMUD uses a layered architecture that cleanly separates concerns. Understanding the layers
+helps you know where to look when debugging, extending, or contributing.
+
+## System Layers
+
+```
+┌─────────────────────────────────────┐
+│           Browser Client             │
+│   (Svelte + xterm.js + WebSocket)   │
+└──────────────┬──────────────────────┘
+               │ WebSocket + REST
+┌──────────────▼──────────────────────┐
+│           Go Server                  │
+│  ┌──────────┐ ┌─────────────────┐   │
+│  │ HTTP API  │ │ MUD Server (WS) │   │
+│  │  (Gin)   │ │   Game Engine   │   │
+│  └──────────┘ └─────────────────┘   │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│         Service Layer                │
+│         (Facade Pattern)            │
+└──────────────┬──────────────────────┘
+               │
+┌──────────────▼──────────────────────┐
+│       Repository Layer               │
+│  (SQLite + JSON document storage)   │
+└─────────────────────────────────────┘
+```
+
+## Layer Descriptions
+
+### Browser Client (`public/`)
+
+Two Svelte applications, both embedded in the Go binary:
+
+- **`public/mud-client/`** — The game client. Terminal rendering via xterm.js, minimap, inventory
+  panels, quest log, tab widgets. Connects to the Go server via WebSocket at `/ws`.
+- **`public/app/`** — The admin/creator UI. CRUD editor for all game entities. Connects to the
+  HTTP API at `/api/`.
+
+### HTTP API (`pkg/server/`)
+
+Built with Gin. Handles:
+- `GET/POST/PUT/DELETE /api/*` — CRUD for all game entities
+- `POST /api/run-script/:id` — Execute a Lua script
+- `GET /ws` — WebSocket upgrade for game clients
+- `GET /admin/*` — Admin UI routes (served from embedded assets)
+- Authentication middleware (Auth0 JWT validation or simple username/password)
+
+### MUD Server (`pkg/mudserver/`)
+
+The WebSocket game server. Each connected player has:
+- A WebSocket connection with thread-safe writes
+- Four goroutines: message receiver, game loop, broadcast handler, timeout handler
+
+Message flow:
+1. Player types a command → WebSocket receive
+2. Message parsed and dispatched to the Game Engine
+3. Engine processes the command, updates state
+4. Response(s) sent to appropriate audience (player, room, global)
+
+### Game Engine (`pkg/mudserver/game/`)
+
+The core game logic. Key components:
+
+| Component | Update Interval | Purpose |
+|-----------|----------------|---------|
+| Game Loop | Continuous | Process player messages, quit events |
+| Room Updates | 10 seconds | Room tick events, scripts |
+| NPC Updates | 10 seconds | NPC AI, movement, idle behavior |
+| Spawner Updates | 5 seconds | Check and spawn NPC instances |
+| Combat Updates | 2 seconds | Resolve combat rounds |
+
+The Game uses a **Facade** (`pkg/service/facade.go`) to access all service layer operations,
+keeping the game engine decoupled from persistence details.
+
+### Service Layer (`pkg/service/`)
+
+Business logic. 13 service implementations, all accessed through a single `Facade` interface:
+
+- `UserService` — User accounts and authentication
+- `CharacterService` — Character CRUD and game state
+- `RoomService` — Room management and navigation
+- `ItemService` — Item and item template management
+- `NPCService` — NPC templates and instances
+- `DialogService` — Dialog tree management
+- `ConversationService` — Active player-NPC conversations
+- `QuestService` — Quest definitions and progress tracking
+- `SkillService` — Skill definitions and equipped skills
+- `ScriptService` — Lua script storage and execution
+- `LootService` — Loot table definitions
+- `PartyService` — Player group management
+- `RunnerService` — Script execution engine
+
+### Repository Layer (`pkg/repository/`)
+
+SQLite persistence. A generic repository pattern stores all entities as JSON documents
+in type-specific SQLite tables.
+
+Collections in SQLite:
+- `users`, `characters`, `rooms`, `items`, `npcs`, `spawners`
+- `dialogs`, `conversations`, `quests`, `quest_progress`
+- `skills`, `scripts`, `loot_tables`, `settings`
+
+## Command Processing
+
+When a player types a command, it flows through the **CommandProcessor** and **RoomProcessor**:
+
+```
+Player Input
+    ↓
+CommandProcessor
+    ↓
+RoomProcessor (for room-specific commands)
+    ├── Static commands (look, inventory, etc.)
+    ├── Dynamic exits (movement)
+    ├── Room actions (interactive objects)
+    └── Room scripts (Lua event handlers)
+```
+
+## Authentication Flow
+
+```
+Browser → POST /auth (username+password or Auth0 token)
+        → JWT issued
+        → Included in subsequent WebSocket + REST requests
+        → Middleware validates JWT on every request
+        → Role extracted (player/creator/admin)
+        → Permission checked for the endpoint
+```
+
+## Scripting Architecture
+
+```
+Game Event
+    ↓
+Script Event Registry
+    ↓
+MultiRunner (routes by language)
+    ├── LuaRunner (primary)
+    │   ├── VM Pool (10 reusable Lua states)
+    │   ├── Sandbox (disabled: os, io, debug, loadfile, dofile)
+    │   └── tales.* API modules
+    └── JavaScriptRunner (deprecated, ES5 via Otto)
+```
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `pkg/mudserver/game/game.go` | Game engine core |
+| `pkg/mudserver/game/commands/commandprocessor.go` | Command dispatch |
+| `pkg/mudserver/game/commands/roomprocessor.go` | Room command processing |
+| `pkg/mudserver/game/combat/combat.go` | Combat instance management |
+| `pkg/service/facade.go` | Service layer facade |
+| `pkg/scripts/runner/lua/luarunner.go` | Lua script execution |
+| `pkg/server/server.go` | HTTP server setup |
+| `pkg/repository/sqlite_generic.go` | Generic SQLite repository |
+
+## Next Steps
+
+- [The Game Loop](/docs/core-concepts/game-loop) — How game state is updated
+- [Message System](/docs/core-concepts/message-system) — How messages reach players
+- [Data Storage](/docs/core-concepts/data-storage) — SQLite schema and patterns

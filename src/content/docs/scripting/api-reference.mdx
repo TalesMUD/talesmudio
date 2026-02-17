@@ -1,0 +1,302 @@
+---
+title: Lua API Reference
+description: Complete reference for all tales.* Lua API modules.
+---
+
+# Lua API Reference
+
+All TalesMUD scripting functions are available under the `tales` global object. These modules
+are injected into every Lua script's sandbox.
+
+## tales.items
+
+```lua
+-- Get item by ID
+local item = tales.items.get(itemID)
+
+-- Find items by name
+local items = tales.items.findByName("sword")
+
+-- Get item template by ID
+local template = tales.items.getTemplate(templateID)
+
+-- Find item templates by name
+local templates = tales.items.findTemplates("sword")
+
+-- Create item from template
+local newItem = tales.items.createFromTemplate(templateID)
+
+-- Delete an item
+local success = tales.items.delete(itemID)
+```
+
+## tales.rooms
+
+```lua
+-- Get room by ID
+local room = tales.rooms.get(roomID)
+
+-- Find rooms by name
+local rooms = tales.rooms.findByName("tavern")
+
+-- Find rooms by area
+local rooms = tales.rooms.findByArea("dungeon")
+
+-- Get all rooms
+local allRooms = tales.rooms.getAll()
+
+-- Get characters currently in a room
+local characters = tales.rooms.getCharacters(roomID)
+
+-- Get NPCs currently in a room
+local npcs = tales.rooms.getNPCs(roomID)
+
+-- Get items currently in a room
+local items = tales.rooms.getItems(roomID)
+```
+
+## tales.characters
+
+```lua
+-- Get character by ID
+local char = tales.characters.get(characterID)
+
+-- Find characters by name
+local chars = tales.characters.findByName("hero")
+
+-- Get all characters
+local allChars = tales.characters.getAll()
+
+-- Get the room a character is currently in
+local room = tales.characters.getRoom(characterID)
+
+-- Damage a character (reduce HP)
+local success = tales.characters.damage(characterID, amount)
+
+-- Heal a character (increase HP)
+local success = tales.characters.heal(characterID, amount)
+
+-- Teleport character to a room
+local success = tales.characters.teleport(characterID, roomID)
+
+-- Give XP to character
+local success = tales.characters.giveXP(characterID, amount)
+```
+
+## tales.npcs
+
+```lua
+-- Get NPC by ID
+local npc = tales.npcs.get(npcID)
+
+-- Find NPCs by name
+local npcs = tales.npcs.findByName("guard")
+
+-- Find NPCs in a room
+local npcs = tales.npcs.findInRoom(roomID)
+
+-- Get all NPC instances
+local allNPCs = tales.npcs.getAll()
+
+-- Damage an NPC
+local success = tales.npcs.damage(npcID, amount)
+
+-- Heal an NPC
+local success = tales.npcs.heal(npcID, amount)
+
+-- Move NPC to a room
+local success = tales.npcs.moveTo(npcID, roomID)
+
+-- Check if NPC is dead
+local isDead = tales.npcs.isDead(npcID)
+
+-- Check if NPC has the enemy trait
+local isEnemy = tales.npcs.isEnemy(npcID)
+
+-- Check if NPC has the merchant trait
+local isMerchant = tales.npcs.isMerchant(npcID)
+
+-- Delete an NPC instance
+local success = tales.npcs.delete(npcID)
+```
+
+## tales.dialogs
+
+```lua
+-- Get dialog by ID
+local dialog = tales.dialogs.get(dialogID)
+
+-- Find dialogs by name
+local dialogs = tales.dialogs.findByName("greeting")
+
+-- Get all dialogs
+local allDialogs = tales.dialogs.getAll()
+
+-- Get the active conversation between a character and NPC
+local conv = tales.dialogs.getConversation(characterID, npcID)
+
+-- Set a context variable in a conversation
+local success = tales.dialogs.setContext(conversationID, "key", "value")
+
+-- Get a context variable from a conversation
+local value = tales.dialogs.getContext(conversationID, "key")
+
+-- Check if a dialog node has been visited in this conversation
+local visited = tales.dialogs.hasVisited(conversationID, nodeID)
+
+-- Get how many times a node has been visited
+local count = tales.dialogs.getVisitCount(conversationID, nodeID)
+```
+
+## tales.quests
+
+```lua
+-- Get quest definition by ID
+local quest = tales.quests.get(questID)
+
+-- Get all quest definitions
+local allQuests = tales.quests.getAll()
+
+-- Accept a quest for a character
+local progress = tales.quests.accept(characterID, questID)
+
+-- Force-complete a quest
+local progress = tales.quests.complete(characterID, questID)
+
+-- Get quest progress for a character
+local progress = tales.quests.getProgress(characterID, questID)
+
+-- Set an objective's current progress value
+local success = tales.quests.setProgress(characterID, questID, objectiveID, amount)
+
+-- Check if a quest is currently active
+local isActive = tales.quests.isActive(characterID, questID)
+
+-- Check if a quest is completed
+local isDone = tales.quests.isCompleted(characterID, questID)
+
+-- Grant a quest to a character (bypasses source type check)
+local progress = tales.quests.grantQuest(characterID, questID)
+
+-- Abandon an active quest
+local success = tales.quests.abandon(characterID, questID)
+
+-- Get all quest progress entries for a character
+local allProgress = tales.quests.getQuestLog(characterID)
+```
+
+## tales.game
+
+```lua
+-- Send message to all players in a room
+-- NOTE: roomID must be the room's stored ID, not a display name
+tales.game.msgToRoom(roomID, "A rumbling sound echoes...")
+
+-- Send message to a specific character
+tales.game.msgToCharacter(characterID, "You feel a chill...")
+
+-- Send message to a specific user
+tales.game.msgToUser(userID, "System message")
+
+-- Broadcast to all connected players
+tales.game.broadcast("Server announcement!")
+
+-- Send message to room, excluding one character
+tales.game.msgToRoomExcept(roomID, "Others see this.", excludeCharacterID)
+
+-- Log to server logs
+tales.game.log("info", "Something happened")
+
+-- Game flags (per-character persistent key/value)
+tales.game.setFlag(characterID, "puzzle_solved", true)
+local val = tales.game.getFlag(characterID, "puzzle_solved")
+
+-- Inventory management
+local has = tales.game.hasItem(characterID, "ITM0001")   -- by ID or TemplateID
+tales.game.giveItem(characterID, "ITM0001")              -- create from template and give
+
+-- Equipment checks
+local equipped = tales.game.hasEquipped(characterID, "mainHand")
+
+-- Collected item tracking (for CopyOnPickup items)
+local collected = tales.game.hasCollectedItem(characterID, "ITM0001")
+tales.game.resetCollectedItem(characterID, "ITM0001")
+
+-- Hidden exit management
+tales.game.revealExit(roomID, "north", characterID)      -- reveal for one character
+local revealed = tales.game.hasRevealedExit(characterID, roomID, "north")
+```
+
+### State Reconciliation Pattern
+
+When scripts reveal exits, store a flag so the state survives reconnection:
+
+```lua
+-- At the top of a room enter script, reconcile state
+local solved = tales.game.getFlag(charID, "puzzle_solved")
+if solved and not tales.game.hasRevealedExit(charID, roomID, "hidden_passage") then
+  tales.game.revealExit(roomID, "hidden_passage", charID)
+end
+```
+
+`revealExit` is idempotent — calling it when already revealed is a no-op.
+
+## tales.utils
+
+```lua
+-- Random integer (inclusive on both ends)
+local num = tales.utils.random(1, 100)
+
+-- Random float between 0.0 and 1.0
+local f = tales.utils.randomFloat()
+
+-- Generate a UUID
+local id = tales.utils.uuid()
+
+-- Current Unix timestamp (seconds)
+local now = tales.utils.now()
+
+-- Current timestamp in milliseconds
+local nowMs = tales.utils.nowMs()
+
+-- Format a timestamp to string
+local str = tales.utils.formatTime(timestamp)
+
+-- Roll dice notation (e.g., "2d6", "1d20+5")
+local result = tales.utils.roll("2d6+3")
+
+-- Percentage chance — returns true N% of the time
+local success = tales.utils.chance(25) -- 25% chance
+
+-- Pick a random element from an array
+local picked = tales.utils.pick({"sword", "axe", "spear"})
+
+-- Shuffle an array (returns new array)
+local shuffled = tales.utils.shuffle(myArray)
+
+-- Clamp a value between min and max
+local clamped = tales.utils.clamp(value, 0, 100)
+
+-- Linear interpolation
+local lerped = tales.utils.lerp(0, 100, 0.5) -- Returns 50
+```
+
+## Return Values
+
+Most write functions return `true`/`false` (success/failure).
+Read functions return the entity table or `nil` if not found.
+
+When an item script modifies `ctx.item`, return the modified item:
+
+```lua
+local item = ctx.item
+item.minDamage = tales.utils.random(1, 5)
+item.maxDamage = item.minDamage + tales.utils.random(5, 15)
+return item  -- Return modified entity
+```
+
+## Next Steps
+
+- [Event Hooks](/docs/scripting/event-hooks) — Available event types and contexts
+- [Examples](/docs/scripting/examples) — Complete working script examples
+- [Custom Mechanics](/docs/scripting/custom-mechanics) — Patterns for complex systems

@@ -1,0 +1,164 @@
+---
+title: Quick Start
+description: Get TalesMUD running and create your first content in 10 minutes.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+# Quick Start
+
+This guide gets you from zero to a running TalesMUD server with your first custom room
+in about 10 minutes.
+
+## 1. Start the Server
+
+```bash
+git clone https://github.com/TalesMUD/talesmud.git
+cd talesmud
+make build
+make run-server
+```
+
+Open `http://localhost:8010` — you'll see the TalesMUD game client.
+
+## 2. Log In as Admin
+
+The default admin credentials are in your `.env` file:
+
+```
+ADMIN_USER=admin
+ADMIN_PASSWORD=changeme
+```
+
+Log in at `http://localhost:8010` using these credentials.
+
+## 3. Select or Create a Character
+
+After logging in:
+1. Click **New Character**
+2. Choose a name, race, and class
+3. Click **Create** to start playing
+
+You'll spawn in the starting room.
+
+## 4. Explore the Content Editor
+
+Navigate to `http://localhost:8010/admin` to access the Creator UI. This is where you
+author all game content:
+
+- **Rooms** — Create and link rooms with exits
+- **NPCs** — Define characters, enemies, and merchants
+- **Items** — Create weapons, armor, and consumables
+- **Quests** — Build multi-objective quest chains
+- **Dialogs** — Author branching conversation trees
+- **Scripts** — Write Lua scripts for custom behavior
+
+## 5. Create Your First Room
+
+<Steps>
+1. In the Creator UI, go to **Rooms → New**
+
+2. Fill in the basic fields:
+   ```
+   Name: The Dark Cavern
+   Description: Jagged stalactites hang from the ceiling of this narrow cave.
+                Water drips steadily from somewhere above.
+   Area: mycave
+   ```
+
+3. Click **Save**
+
+4. Go back to your starting room and add an exit pointing to this room:
+   - Edit the starting room
+   - In **Exits**, add: `north → [The Dark Cavern's ID]`
+   - Save
+
+5. In the game client, type `north` to walk there
+</Steps>
+
+## 6. Add an NPC
+
+<Steps>
+1. In Creator UI, go to **NPCs → New**
+
+2. Create a simple NPC:
+   ```
+   Name: Cave Rat
+   Description: A large rat with matted grey fur and red eyes.
+   ```
+
+3. Enable **Enemy** trait:
+   ```
+   Level: 1
+   Max HP: 15
+   Attack: 3
+   Defense: 1
+   XP Reward: 10
+   ```
+
+4. Add a **Spawner** in your room:
+   - Edit the Dark Cavern room
+   - In **Spawners**, reference the Cave Rat NPC
+   - Set **Max Count: 2**, **Respawn Time: 60s**
+
+5. Restart the server or wait for the spawner tick — the Cave Rat will appear
+</Steps>
+
+## 7. Your First Lua Script
+
+Scripts let you react to game events. Create a simple room entrance script:
+
+<Steps>
+1. Go to **Scripts → New**
+
+2. Set:
+   ```
+   Name: Cave Atmosphere
+   Type: room
+   Language: lua
+   ```
+
+3. Paste this code:
+   ```lua
+   -- Runs whenever a player enters The Dark Cavern
+   local charID = ctx.character.id
+
+   if tales.utils.chance(30) then
+     tales.game.msgToCharacter(charID,
+       "A bat swoops past your head in the darkness.")
+   end
+
+   if tales.utils.chance(10) then
+     tales.game.msgToRoom(ctx.room.id,
+       "The cave groans ominously.")
+   end
+   ```
+
+4. Save the script, then edit your Dark Cavern room
+5. Set **On Enter Script** to this script
+6. Enter the room — the atmospheric messages will fire randomly
+</Steps>
+
+## Available Commands
+
+Type `help` in the game for the full command list. Key commands:
+
+| Command | Description |
+|---------|-------------|
+| `look` / `l` | Describe the current room |
+| `north`, `south`, `east`, `west` | Move between rooms |
+| `attack` / `a` | Attack a target |
+| `cast [spell]` | Cast a spell |
+| `skills` | List equipped skills |
+| `quests` | View quest log |
+| `who` | List online players |
+
+<Aside type="tip">
+  Most commands have short aliases. `n`, `s`, `e`, `w` for movement; `a` for attack; `h` for help.
+</Aside>
+
+## Next Steps
+
+- [Configuration](/docs/getting-started/configuration) — Environment variables and server options
+- [Your First World](/docs/getting-started/first-world) — Building a complete zone
+- [Architecture Overview](/docs/core-concepts/architecture) — How the system is structured

@@ -1,0 +1,186 @@
+---
+title: Items & Equipment
+description: Item types, quality tiers, templates, instances, and equipment slots.
+---
+
+# Items & Equipment
+
+TalesMUD's item system uses a template/instance pattern. Templates are blueprints;
+instances are the actual items players carry. Every item has a type, quality, and optional
+equipment slot.
+
+## Item Types
+
+| Type | Description |
+|------|-------------|
+| `weapon` | Equippable to a hand slot; has `damage` attribute |
+| `armor` | Equippable to a body slot; has `defense` attribute |
+| `consumable` | Used up when consumed; typically triggers a Lua script |
+| `currency` | Stackable money (Copper Bits, Silver Marks) |
+| `quest` | Quest-specific items; often `CopyOnPickup` |
+| `collectible` | Collectible items, stackable loot |
+| `crafting_material` | Components for crafting (future system) |
+
+## Item Sub-Types (Weapons)
+
+| SubType | Description |
+|---------|-------------|
+| `sword` | One-handed sword |
+| `twohandsword` | Two-handed sword (occupies both hand slots) |
+| `axe` | Axe |
+| `spear` | Spear |
+| `shield` | Shield (off-hand) |
+
+## Quality Tiers
+
+Items have visual quality indicators shown in the game client:
+
+| Quality | Color | Description |
+|---------|-------|-------------|
+| `normal` | White | Common drops |
+| `magic` | Blue | Better-than-average |
+| `rare` | Yellow | Notable items |
+| `legendary` | Orange | Powerful, notable lore |
+| `mythic` | Purple | Unique world items |
+
+## Equipment Slots
+
+| Slot | Description |
+|------|-------------|
+| `head` | Head slot |
+| `chest` | Chest/armor slot |
+| `legs` | Leg armor |
+| `boots` | Footwear |
+| `hands` | Gloves |
+| `neck` | Amulet/necklace |
+| `ring1` | Left ring |
+| `ring2` | Right ring |
+| `main_hand` | Primary weapon |
+| `off_hand` | Secondary weapon or shield |
+
+## Template vs Instance
+
+**Templates** are blueprints stored in the database with `isTemplate: true`.
+**Instances** are created from templates when:
+- A player picks up a room item
+- A loot table drops an item
+- A quest reward is granted
+- A script calls `tales.game.giveItem()`
+
+Instances have a `templateId` pointing to their source and a unique `instanceSuffix`.
+
+## Creating Items
+
+Via the Creator UI: **Items → New**
+
+Or via the REST API:
+
+```bash
+# Create a weapon template
+curl -X POST http://localhost:8010/api/items \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Iron Shortsword",
+    "description": "A serviceable iron shortsword. Nothing special, but reliable.",
+    "isTemplate": true,
+    "type": "weapon",
+    "subType": "sword",
+    "slot": "main_hand",
+    "quality": "normal",
+    "level": 1,
+    "attributes": {
+      "damage": 5
+    },
+    "basePrice": 25
+  }'
+```
+
+```bash
+# Create a consumable template
+curl -X POST http://localhost:8010/api/items \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Weak Health Potion",
+    "description": "A small vial of red liquid. Tastes like iron filings.",
+    "isTemplate": true,
+    "type": "consumable",
+    "quality": "normal",
+    "stackable": true,
+    "maxStack": 10,
+    "consumable": true,
+    "basePrice": 5,
+    "onUseScriptId": "SCR_HEAL_WEAK"
+  }'
+```
+
+## Item Attributes
+
+Items use a flexible `attributes` map for stats:
+
+```json
+{
+  "attributes": {
+    "damage": 5,      // Weapon damage (for weapons)
+    "defense": 2,     // Armor value (for armor)
+    "armor": 1        // Alternative armor field
+  }
+}
+```
+
+## Special Item Properties
+
+| Property | Description |
+|----------|-------------|
+| `stackable` | Can hold multiple in one inventory slot |
+| `maxStack` | Maximum stack size |
+| `consumable` | Consumed (removed/decremented) on use |
+| `noPickup` | Cannot be picked up by players |
+| `copyOnPickup` | Creates a personal copy when picked up |
+| `boundToCharacterId` | Bound to a specific character — cannot be traded |
+
+### CopyOnPickup Items
+
+Quest items that should only be picked up once use `copyOnPickup: true`. When a player
+picks up a `copyOnPickup` item:
+1. A new instance is created specifically for that character
+2. The original stays in the room for other players
+3. A `collected_item:<templateID>` flag is set on the character
+4. The character cannot pick up another copy
+
+## Placing Items in Rooms
+
+Add items to rooms via the Creator UI (Room → Items) or API:
+
+```bash
+# Create an item instance in a room
+curl -X PUT http://localhost:8010/api/rooms/ROOM_ID \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "items": [
+      { "templateId": "ITM0001", ... }
+    ]
+  }'
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `pickup [item]` | Pick up an item from the room |
+| `drop [item]` | Drop an item |
+| `equip [item]` | Equip an item |
+| `unequip [slot]` | Unequip an item |
+| `equipment` / `gear` | Show equipped items |
+| `inventory` | Show inventory |
+| `use [item]` | Use/consume an item |
+| `examine [item]` | Detailed item description |
+| `destroy [item]` | Delete an item permanently |
+
+## Next Steps
+
+- [Merchants & Economy](/docs/world-building/merchants) — Merchant inventories and pricing
+- [Loot Tables](/docs/game-systems/loot-tables) — Enemy item drops
+- [Lua Scripting](/docs/scripting/examples) — Consumable item scripts

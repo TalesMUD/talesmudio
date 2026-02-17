@@ -1,0 +1,65 @@
+---
+title: Production Checklist
+description: Pre-launch checklist for TalesMUD production deployments.
+---
+
+# Production Checklist
+
+Before going live, verify each item in this checklist.
+
+## Security
+
+- [ ] `GIN_MODE=release` — disables debug output in HTTP responses
+- [ ] `AUTH_ENABLED=true` — use Auth0 instead of simple password auth
+- [ ] Default `ADMIN_PASSWORD` changed from `changeme`
+- [ ] HTTPS enabled (Let's Encrypt via Certbot recommended)
+- [ ] WebSocket connection at `wss://` (not `ws://`) — handled by Nginx TLS
+- [ ] Server firewall: only ports 80 and 443 open externally
+
+## Data Persistence
+
+- [ ] SQLite database mounted to a persistent volume (not in container)
+- [ ] Automated database backups configured (cron or backup service)
+- [ ] Test restore: can you recover the database from a backup?
+
+## Performance
+
+- [ ] `GIN_MODE=release` — enables performance optimizations
+- [ ] `LOG_LEVEL=info` or `warn` — reduces log I/O in production
+- [ ] Nginx caching for static assets (optional but recommended)
+- [ ] Server has adequate RAM for SQLite WAL and Go runtime
+
+## Nginx
+
+- [ ] HTTP → HTTPS redirect configured
+- [ ] WebSocket `proxy_read_timeout` set to `3600s` (1 hour minimum)
+- [ ] SSL certificate obtained and auto-renewal configured
+- [ ] `proxy_set_header X-Forwarded-Proto $scheme` set (needed for redirect logic)
+
+## Game Content
+
+- [ ] Starting room configured for new characters
+- [ ] At least one zone with rooms, NPCs, and exits
+- [ ] Default skills seeded (`make seed-skills` or via API)
+- [ ] Admin account promoted to MUD Admin role
+- [ ] Content creator accounts promoted to MUD Creator role
+
+## Testing
+
+- [ ] Create a new character end-to-end
+- [ ] Walk between multiple rooms
+- [ ] Kill an enemy (combat works)
+- [ ] Accept and complete a quest
+- [ ] Restart the server — all state persists
+- [ ] WebSocket reconnection works after brief disconnect
+
+## Monitoring
+
+- [ ] Server logs are being collected
+- [ ] `/health` endpoint returns 200 (configure uptime monitoring)
+- [ ] Disk space monitoring for database growth
+
+## Next Steps
+
+Once deployed, tell your players and list your world in the
+[TalesMUD Showcase](https://github.com/TalesMUD/talesmud/issues/new)!

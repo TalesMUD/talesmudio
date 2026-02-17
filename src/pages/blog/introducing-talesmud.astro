@@ -1,0 +1,263 @@
+---
+import Landing from '../../layouts/Landing.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Landing
+  title="Introducing TalesMUD — TalesMUD Blog"
+  description="What TalesMUD is and why it exists. Bringing MUDs into the modern web era."
+>
+  <Nav />
+
+  <main class="blog-post-main">
+    <article class="blog-article">
+      <div class="blog-article-header">
+        <div class="blog-article-meta">
+          <span class="blog-post-date">December 1, 2024</span>
+          <span class="blog-post-sep">·</span>
+          <span class="blog-post-readtime">8 min read</span>
+        </div>
+        <h1 class="blog-article-title">
+          Introducing TalesMUD — A Modern Framework for Browser-Based MUDs
+        </h1>
+        <p class="blog-article-subtitle">
+          Bringing the classic Multi-User Dungeon format into the modern web era.
+        </p>
+        <div class="blog-post-tags">
+          <span class="blog-tag">announcement</span>
+          <span class="blog-tag">framework</span>
+          <span class="blog-tag">open-source</span>
+        </div>
+      </div>
+
+      <div class="blog-article-body">
+        <p>
+          If you grew up in the late 80s or 90s, you might remember MUDs — Multi-User Dungeons.
+          Text-based multiplayer RPGs where you'd explore procedurally described rooms, fight monsters
+          with commands like <code>attack goblin</code>, and chat with other players over a 28.8k modem
+          through a bare telnet connection.
+        </p>
+        <p>
+          MUDs pioneered online multiplayer gaming. They had quest systems, character classes, guilds,
+          crafting, PvP, and open worlds — years before graphical MMOs existed. And yet today, most
+          MUD frameworks are legacy codebases from the 90s, requiring telnet clients, running on
+          arcane server software, and completely inaccessible to modern players.
+        </p>
+
+        <h2>Why TalesMUD?</h2>
+        <p>
+          I built TalesMUD because I wanted to play a MUD in my browser. No telnet. No special client.
+          Just open a tab, connect via WebSocket, and be somewhere else.
+        </p>
+        <p>
+          But more than that, I wanted a framework where I could build a world quickly — with real
+          tooling, a content editor, a quest system that actually works, and code I could understand.
+          Not a pile of 30-year-old C that requires patches just to compile.
+        </p>
+
+        <h2>What TalesMUD Is</h2>
+        <p>
+          TalesMUD is a complete framework for building browser-based MUDs. It ships with:
+        </p>
+        <ul>
+          <li><strong>A Go backend</strong> — fast, single-binary, embedded Svelte frontend, SQLite storage</li>
+          <li><strong>A Svelte game client</strong> — xterm.js terminal rendering, minimap, tab widgets</li>
+          <li><strong>A web content editor</strong> — CRUD for rooms, NPCs, items, quests, scripts</li>
+          <li><strong>Turn-based combat</strong> — initiative, skills, spells, status effects, loot</li>
+          <li><strong>A quest system</strong> — kill, collect, deliver, visit, talk, and custom Lua objectives</li>
+          <li><strong>Lua scripting</strong> — extend anything with scripts that have access to 8 game API modules</li>
+          <li><strong>Auth0 integration</strong> — optional authentication with role-based access (player, creator, admin)</li>
+        </ul>
+
+        <h2>The Vision: Browser-Native MUDs</h2>
+        <p>
+          The browser is the universal runtime. Every device has one. The best multiplayer games of the
+          next decade will be web-first — not because of technical necessity, but because accessibility
+          matters. If players have to install something, you lose most of them.
+        </p>
+        <p>
+          TalesMUD takes the MUD format — which is fundamentally text-based and works beautifully at low
+          bandwidth — and makes it entirely browser-native. Players connect via WebSocket. The game client
+          is a Svelte app. The server is a statically-linked Go binary with embedded assets that you can
+          run anywhere Docker runs.
+        </p>
+
+        <h2>Veilspan: The Reference World</h2>
+        <p>
+          To prove the concept, I built <a href="https://veilspan.com" target="_blank" rel="noopener">Veilspan</a> —
+          a fantasy world set in the ruins of Aethermoor. It's the official demo deployment of TalesMUD,
+          running live at <code>veilspan.com</code>.
+        </p>
+        <p>
+          Veilspan has real zones, real NPCs, real quests, real combat. It's not a tech demo — it's a
+          playable game that happens to document every feature of the framework in production.
+          If you want to see what TalesMUD can do, go play it.
+        </p>
+
+        <h2>What's Next</h2>
+        <p>
+          TalesMUD is early — version 0.1. There's a lot to build:
+        </p>
+        <ul>
+          <li>Party system (grouping and group combat)</li>
+          <li>Crafting system</li>
+          <li>More NPC AI states</li>
+          <li>World map visualization improvements</li>
+          <li>Better mobile UI</li>
+          <li>More scripting event hooks</li>
+        </ul>
+        <p>
+          But the foundation is solid. The architecture is clean. The content pipeline works.
+          And Veilspan is the living proof.
+        </p>
+
+        <h2>Get Involved</h2>
+        <p>
+          TalesMUD is fully open source under the MIT license.
+          The code is at <a href="https://github.com/TalesMUD/talesmud" target="_blank" rel="noopener">github.com/TalesMUD/talesmud</a>.
+          If you're interested in building text-based worlds, I'd love to have you contribute.
+        </p>
+        <p>
+          Whether that's opening issues, fixing bugs, writing docs, or building your own world and
+          showing it off — all of it helps grow the ecosystem.
+        </p>
+        <p>
+          Start with the <a href="/docs/getting-started/introduction">Getting Started guide</a>,
+          then go <a href="https://veilspan.com" target="_blank" rel="noopener">play Veilspan</a> to see what's possible.
+        </p>
+      </div>
+
+      <div class="blog-article-footer">
+        <a href="/blog" class="btn btn-secondary" style="display: inline-flex;">← All Posts</a>
+      </div>
+    </article>
+  </main>
+
+  <Footer />
+</Landing>
+
+<style>
+  .blog-post-main {
+    min-height: calc(100vh - 64px);
+    padding: 3rem 2rem 5rem;
+  }
+
+  .blog-article {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .blog-article-header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .blog-article-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .blog-post-date,
+  .blog-post-readtime {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+  }
+
+  .blog-post-sep {
+    color: var(--color-border);
+  }
+
+  .blog-article-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 0.75rem;
+    line-height: 1.2;
+  }
+
+  .blog-article-subtitle {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin: 0 0 1rem;
+    line-height: 1.6;
+  }
+
+  .blog-post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .blog-tag {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    padding: 2px 8px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 4px;
+    color: var(--color-teal);
+  }
+
+  .blog-article-body {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    font-size: 1.05rem;
+  }
+
+  .blog-article-body p {
+    margin: 0 0 1.5rem;
+  }
+
+  .blog-article-body h2 {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--color-amber);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(245, 166, 35, 0.2);
+  }
+
+  .blog-article-body ul {
+    margin: 0 0 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-article-body li {
+    margin-bottom: 0.5rem;
+  }
+
+  .blog-article-body a {
+    color: var(--color-teal);
+    text-decoration: none;
+  }
+
+  .blog-article-body a:hover {
+    color: var(--color-amber);
+    text-decoration: underline;
+  }
+
+  .blog-article-body code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--color-teal);
+  }
+
+  .blog-article-body strong {
+    color: var(--color-text);
+  }
+
+  .blog-article-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+</style>

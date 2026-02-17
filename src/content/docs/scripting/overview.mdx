@@ -1,0 +1,185 @@
+---
+title: Lua Scripting Overview
+description: The TalesMUD scripting system — Lua, script types, execution model, and safety.
+---
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+
+# Lua Scripting Overview
+
+TalesMUD uses **Lua** (via [gopher-lua](https://github.com/yuin/gopher-lua)) as the primary
+scripting language for dynamic game content. Scripts let you add custom mechanics, react to
+game events, and extend any system without modifying the Go source.
+
+## What You Can Script
+
+<CardGrid>
+  <Card title="Room Events" icon="document">
+    Fire when players enter rooms (`onEnterScript`). Add atmosphere, reveal exits, grant quests.
+  </Card>
+  <Card title="Room Actions" icon="puzzle">
+    Attach to interactive objects. Handle puzzles, switches, mechanisms.
+  </Card>
+  <Card title="Item Use" icon="star">
+    Execute when players use consumables or special items (`onUseScriptId`).
+  </Card>
+  <Card title="Quest Completion" icon="approve-check">
+    Fire on quest completion (`onCompleteScriptId`). Award custom rewards, reveal content.
+  </Card>
+</CardGrid>
+
+## Script Entity
+
+Scripts are stored in the database with this structure:
+
+```go
+type Script struct {
+    ID          string         // Unique identifier (e.g., "SCR0007")
+    Name        string         // Human-readable name
+    Description string         // What the script does
+    Code        string         // Lua source code
+    Type        ScriptType     // item | room | npc | quest | event | custom
+    Language    ScriptLanguage // "lua" (or "javascript" — deprecated)
+}
+```
+
+## Creating Scripts
+
+In the Creator UI, navigate to **Scripts → New**:
+
+```lua
+-- Example: Dungeon atmosphere script
+-- Trigger: Room enter (attach to a room's "On Enter Script" field)
+
+local charID = ctx.character.id
+
+if tales.utils.chance(30) then
+  tales.game.msgToCharacter(charID,
+    "A bat swoops past your head in the darkness.")
+end
+
+if tales.utils.chance(10) then
+  tales.game.msgToRoom(ctx.room.id,
+    "The cave groans ominously around you.")
+end
+```
+
+Or via the REST API:
+
+```bash
+curl -X POST http://localhost:8010/api/scripts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Dungeon Atmosphere",
+    "type": "room",
+    "language": "lua",
+    "code": "-- your script here"
+  }'
+```
+
+## Attaching Scripts
+
+Scripts must be attached to trigger them. Attachment points:
+
+| Attachment | Location | Trigger |
+|-----------|---------|---------|
+| `room.onEnterScriptID` | Room entity | Player enters the room |
+| `room.actions[n].scriptId` | Room action | Player uses the action |
+| `item.onUseScriptId` | Item entity | Player uses the item |
+| `quest.onCompleteScriptId` | Quest entity | Quest is completed |
+
+## The `ctx` Context Variable
+
+Every script receives a `ctx` global with data relevant to the triggering event:
+
+```lua
+-- Room enter context
+ctx.eventType   -- "player.enter_room"
+ctx.room        -- The room entity
+ctx.toRoom      -- Destination room (when available)
+ctx.character   -- The character entering
+ctx.user        -- The user account
+
+-- Item use context
+ctx.item        -- The item being used
+ctx.character   -- The character using it
+ctx.room        -- The room it's happening in
+
+-- Quest completion context
+ctx.character   -- The character completing the quest
+ctx.room        -- Current room
+```
+
+## The `tales` Global API
+
+All scripting functionality is in the `tales` global object:
+
+```lua
+tales.items.*       -- Item management
+tales.rooms.*       -- Room queries and manipulation
+tales.characters.*  -- Character queries and actions
+tales.npcs.*        -- NPC management
+tales.dialogs.*     -- Dialog and conversation management
+tales.quests.*      -- Quest progress management
+tales.game.*        -- Messaging and game flags
+tales.utils.*       -- Random numbers, dice, time utilities
+```
+
+See the [API Reference](/docs/scripting/api-reference) for full documentation of every function.
+
+## Sandboxing and Safety
+
+Scripts run in a sandboxed environment:
+
+- **5-second timeout** — Scripts that exceed 5 seconds are terminated
+- **Disabled modules** — `os`, `io`, `debug`, `loadfile`, `dofile` are removed from the Lua sandbox
+- **VM pool** — 10 reusable Lua VMs for performance; each script gets its own state
+- **Isolated execution** — Scripts cannot access filesystem or network
+
+<Aside type="caution" title="No side effects outside tales.*">
+  Scripts should only interact with the game world through the `tales.*` API. Direct access
+  to Go internals is not possible from Lua, and the sandbox prevents filesystem/network access.
+</Aside>
+
+## JavaScript (Deprecated)
+
+TalesMUD previously used JavaScript (ES5 via the Otto engine). JavaScript scripts still run
+but show deprecation warnings in the server logs. All new scripts should use Lua.
+
+See [Migrating from JavaScript](/docs/scripting/overview#migrating-from-javascript) for the conversion guide.
+
+## Migrating from JavaScript
+
+If you have existing JavaScript scripts:
+
+| JavaScript | Lua |
+|-----------|-----|
+| `var x = ...` | `local x = ...` |
+| `function() { }` | `function() end` |
+| `T_functionName()` | `tales.module.functionName()` |
+| `array[0]` | `array[1]` (1-indexed) |
+| `"a" + "b"` | `"a" .. "b"` |
+| `Math.random()` | `tales.utils.randomFloat()` |
+
+**JavaScript:**
+```javascript
+var item = ctx;
+item.minDamage = Math.floor(Math.random() * 5) + 1;
+item.maxDamage = item.minDamage + Math.floor(Math.random() * 10) + 5;
+ctx = JSON.stringify(item);
+```
+
+**Lua:**
+```lua
+local item = ctx.item
+item.minDamage = tales.utils.random(1, 5)
+item.maxDamage = item.minDamage + tales.utils.random(5, 15)
+return item
+```
+
+## Next Steps
+
+- [API Reference](/docs/scripting/api-reference) — Every `tales.*` function documented
+- [Event Hooks](/docs/scripting/event-hooks) — Available events and their contexts
+- [Examples](/docs/scripting/examples) — Real script examples

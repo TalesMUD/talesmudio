@@ -1,0 +1,171 @@
+---
+title: Dialog Trees
+description: Authoring branching NPC conversations with variable substitution and conditional options.
+---
+
+# Dialog Trees
+
+Dialog trees define the branching conversations players can have with NPCs. Each tree has
+nodes with text and clickable options that branch to other nodes.
+
+## Dialog Structure
+
+A dialog tree consists of **nodes**. Each node has:
+- A unique `id` within the tree
+- `text` — what the NPC says
+- `options` — available player responses that lead to other nodes
+
+```json
+{
+  "name": "Mira's Greeting",
+  "nodes": [
+    {
+      "id": "root",
+      "text": "Welcome to the Weary Wanderer! What can I do for you?",
+      "options": [
+        {
+          "id": "opt_room",
+          "text": "I need a room for the night.",
+          "targetNodeId": "room_response"
+        },
+        {
+          "id": "opt_info",
+          "text": "What do you know about the catacombs?",
+          "targetNodeId": "catacombs_info"
+        },
+        {
+          "id": "opt_leave",
+          "text": "Never mind.",
+          "targetNodeId": null
+        }
+      ]
+    },
+    {
+      "id": "room_response",
+      "text": "That'll be five copper a night. The room at the top of the stairs is yours.",
+      "options": [
+        {
+          "id": "opt_pay",
+          "text": "Here you go.",
+          "targetNodeId": "room_paid"
+        },
+        {
+          "id": "opt_back",
+          "text": "Actually, never mind.",
+          "targetNodeId": "root"
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Attaching Dialogs to NPCs
+
+Set the `dialogId` field on an NPC to attach a dialog tree:
+
+```json
+{
+  "name": "Mira Thornwood",
+  "dialogId": "DLG_MIRA_GREETING"
+}
+```
+
+When a player types `talk mira`, the dialog starts at the `root` node.
+
+## Variable Substitution
+
+Dialog text can reference conversation context variables:
+
+```
+"Good {timeOfDay}, {heroStatus}! What brings you to the Wanderer?"
+```
+
+Set context variables from Lua scripts:
+
+```lua
+local convID = ctx.conversationId
+tales.dialogs.setContext(convID, "timeOfDay", "evening")
+tales.dialogs.setContext(convID, "heroStatus", "traveler")
+```
+
+## Conditional Options
+
+Options can have conditions based on quest state, visited nodes, or context variables:
+
+```json
+{
+  "id": "opt_secret",
+  "text": "I've heard there's a vault beneath the city...",
+  "targetNodeId": "vault_topic",
+  "condition": "quest:QST0003_completed"
+}
+```
+
+Supported condition formats:
+- `quest:<questId>_active` — quest is active
+- `quest:<questId>_completed` — quest is completed
+- `visited:<nodeId>` — node has been visited in this conversation
+
+## One-Time Options
+
+Options can be marked to only appear once:
+
+```json
+{
+  "id": "opt_secret",
+  "text": "Tell me the secret passage location.",
+  "targetNodeId": "secret_info",
+  "showOnce": true
+}
+```
+
+After the player selects a `showOnce` option, it won't appear again in subsequent conversations.
+
+## Quest Dialog Integration
+
+When an NPC has quests with `source.npcId` matching the NPC's template ID, quest options
+are **automatically injected** alongside the manual dialog options:
+
+| Quest State | Auto-Injected Option |
+|-------------|---------------------|
+| Available | `[Quest] {quest name}` |
+| In Progress | `[Quest] {quest name} (in progress)` |
+| Objectives Complete | `[Quest] Turn in: {quest name}` |
+
+Manual dialog trees and auto-injected quest options can coexist. The player sees both.
+
+## Commands
+
+```
+talk [npc]           — Start a conversation
+[option_number]      — Select a dialog option (e.g., "1" or "2")
+```
+
+## REST API
+
+```bash
+# Create a dialog
+curl -X POST http://localhost:8010/api/dialogs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Guard Greeting",
+    "nodes": [
+      {
+        "id": "root",
+        "text": "Halt! State your business.",
+        "options": [
+          {"id": "merchant", "text": "Just passing through.", "targetNodeId": "pass"},
+          {"id": "help", "text": "I need directions.", "targetNodeId": "directions"}
+        ]
+      }
+    ]
+  }'
+```
+
+## Next Steps
+
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Attaching dialogs to NPCs
+- [Quests](/docs/world-building/quests) — Quest dialog auto-injection
+- [Scripting](/docs/scripting/api-reference#talesdialogs) — `tales.dialogs` API

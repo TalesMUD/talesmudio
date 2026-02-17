@@ -1,0 +1,79 @@
+---
+title: Pull Request Guidelines
+description: How to submit contributions to TalesMUD.
+---
+
+# Pull Request Guidelines
+
+## Before You Start
+
+1. Check [open issues](https://github.com/TalesMUD/talesmud/issues) to avoid duplicate work
+2. For large features, open an issue first to discuss the approach
+3. Fork the repository and work on a feature branch
+
+## Branch Naming
+
+```
+feature/short-description
+fix/bug-description
+docs/what-you-documented
+refactor/what-you-refactored
+```
+
+## Code Quality
+
+- `go fmt` your code before submitting
+- `go vet ./...` should pass without errors
+- Add tests for new functionality in `pkg/`
+- Keep changes focused — one PR per feature/fix
+
+## Commit Messages
+
+Write clear, present-tense commit messages:
+
+```
+Add poison resistance status effect
+
+- Implements PoisonResist status that reduces DoT damage by 50%
+- Adds resistance to EnemyTrait for configuring immune enemies
+- Updates combat resolver to check resistance before applying DoT
+```
+
+## PR Description Template
+
+```markdown
+## What this PR does
+Brief description of the change.
+
+## Why
+Why is this change needed? Link to the relevant issue.
+
+## How to test
+Steps to verify the change works correctly.
+
+## Screenshots (if UI changes)
+```
+
+## Running Tests
+
+```bash
+go test ./...
+```
+
+## Checklist
+
+- [ ] Code is `gofmt`-formatted
+- [ ] `go vet ./...` passes
+- [ ] Tests pass
+- [ ] New functionality has tests
+- [ ] Documentation updated (if applicable)
+
+## What Gets Merged
+
+TalesMUD merges contributions that:
+- Fix real bugs
+- Add features from the roadmap
+- Improve test coverage
+- Improve documentation accuracy
+
+PRs that introduce breaking changes without discussion will be held for review.

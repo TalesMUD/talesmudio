@@ -1,0 +1,94 @@
+---
+title: Status Effects
+description: Buffs, debuffs, DoT, HoT, stun, and mana shield in TalesMUD combat.
+---
+
+# Status Effects
+
+Status effects modify combatant stats, deal damage over time, heal over time, or incapacitate
+targets. They're applied by skills and last for a set number of combat rounds.
+
+## Effect Types
+
+| Type | Code | Description |
+|------|------|-------------|
+| **Damage over Time** | `dot` | Deals damage each round for N rounds |
+| **Heal over Time** | `hot` | Restores HP each round for N rounds |
+| **Buff** | `buff` | Increases a stat by a percentage |
+| **Debuff** | `debuff` | Decreases a stat by a percentage |
+| **Stun** | `stun` | Target skips their next action |
+| **Mana Shield** | `mana_shield` | Absorbs damage by consuming mana (Mage) |
+
+## Affected Stats
+
+Buffs and debuffs can modify:
+
+| Stat | Description |
+|------|-------------|
+| `attack` | Damage dealt |
+| `defense` | Damage reduction |
+| `dodge` | Chance to avoid attacks |
+| `mana_shield` | Special: mana shield absorption |
+
+## How Status Effects Work
+
+### Stun
+
+Applied by Warrior's **Shield Bash**. The stunned target's next turn is skipped entirely.
+
+### DoT (Damage Over Time)
+
+Applied by Rogue's **Poison Strike**. Deals damage at the start of each round:
+
+```
+Each round: DoT_damage = BasePower + (DEX_modifier × ScalingFactor)
+Rounds: Duration (e.g., 3 rounds for Poison Strike)
+```
+
+### HoT (Heal Over Time)
+
+Applied by Druid's **Rejuvenation**. Restores HP at the start of each round:
+
+```
+Each round: HoT_amount = BasePower + (WIS_modifier × ScalingFactor)
+Rounds: Duration (e.g., 3 rounds for Rejuvenation)
+```
+
+### Buff
+
+Example: Warrior's **Battle Cry** (+30% attack, 3 rounds)
+
+```
+Modified attack = base_attack × (1 + BuffPercent)
+                = base_attack × 1.30
+```
+
+### Debuff
+
+Example: Druid's **Entangle** (-40% attack, 2 rounds)
+
+```
+Modified attack = base_attack × (1 + BuffPercent)
+                = base_attack × (1 - 0.40)
+                = base_attack × 0.60
+```
+
+### Mana Shield
+
+Applied by Mage's **Mana Shield**. When the Mage takes damage while the shield is active,
+damage is subtracted from mana instead of HP (up to the shield's absorption capacity).
+
+## Duration and Cooldowns
+
+Status effects last for `Duration` combat rounds, counting down each round. When duration
+reaches 0, the effect expires.
+
+## Multiple Effects
+
+A combatant can have multiple status effects simultaneously. Each resolves independently
+each round. There's no cap on the number of active effects.
+
+## Next Steps
+
+- [Skills & Spells](/docs/game-systems/skills-and-spells) — Skills that apply status effects
+- [Combat System](/docs/game-systems/combat) — Full combat mechanics

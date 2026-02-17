@@ -1,0 +1,90 @@
+---
+title: Loot Tables
+description: Configure enemy item drops with probability-based loot tables.
+---
+
+# Loot Tables
+
+Loot tables define what items can drop when an enemy is defeated. Each table has
+a list of possible drops with individual drop chances.
+
+## Creating a Loot Table
+
+Via the Creator UI: **Loot Tables → New**
+
+Or via the REST API:
+
+```bash
+curl -X POST http://localhost:8010/api/loot-tables \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Cave Goblin Drops",
+    "entries": [
+      {
+        "itemTemplateId": "ITM0018",
+        "chance": 0.80,
+        "minQuantity": 1,
+        "maxQuantity": 2
+      },
+      {
+        "itemTemplateId": "ITM0006",
+        "chance": 0.50,
+        "minQuantity": 1,
+        "maxQuantity": 5
+      },
+      {
+        "itemTemplateId": "ITM0021",
+        "chance": 0.05,
+        "minQuantity": 1,
+        "maxQuantity": 1
+      }
+    ]
+  }'
+```
+
+## Loot Entry Fields
+
+| Field | Description |
+|-------|-------------|
+| `itemTemplateId` | Item template to drop |
+| `chance` | Drop probability (0.0–1.0; 1.0 = always) |
+| `minQuantity` | Minimum quantity dropped |
+| `maxQuantity` | Maximum quantity (random in range) |
+
+## Attaching to Enemies
+
+Set `lootTableId` on the enemy's NPC template:
+
+```json
+{
+  "enemyTrait": {
+    "lootTableId": "LT0003",
+    "goldDrop": 5
+  }
+}
+```
+
+## Drop Resolution
+
+When an enemy dies:
+1. Gold drops to the room (if `goldDrop > 0`)
+2. Each loot entry is evaluated independently with its `chance`
+3. For entries that trigger, quantity is rolled between min and max
+4. Items are created from templates and dropped to the room
+
+## Example Drop Table Design
+
+For a level 2 enemy:
+
+| Item | Chance | Qty | Notes |
+|------|--------|-----|-------|
+| Common loot (crafting mat) | 80% | 1-3 | Always worth picking up |
+| Currency (copper) | 50% | 2-8 | Keeps economy flowing |
+| Consumable (potion) | 20% | 1 | Nice surprise |
+| Rare equipment | 2% | 1 | Exciting, not expected |
+
+## Next Steps
+
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Attaching loot tables to enemies
+- [Items & Equipment](/docs/world-building/items-and-equipment) — Creating item templates

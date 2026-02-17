@@ -1,0 +1,170 @@
+---
+title: Configuration
+description: All environment variables and configuration options for TalesMUD.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# Configuration
+
+TalesMUD is configured via environment variables. Copy `.env.example` to `.env` and edit as needed.
+
+## Environment Variables Reference
+
+### Application Settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `8010` | HTTP server port |
+| `GIN_MODE` | `debug` | Gin framework mode: `debug`, `release`, or `test` |
+| `LOG_LEVEL` | `debug` | Log verbosity: `debug`, `info`, `warn`, `error` |
+
+```bash
+PORT=8010
+GIN_MODE=debug
+LOG_LEVEL=debug
+```
+
+In production, set `GIN_MODE=release` to disable debug logging and enable performance optimizations.
+
+### Authentication
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTH_ENABLED` | `false` | Enable Auth0 JWT authentication |
+| `ADMIN_USER` | `admin` | Admin username (when `AUTH_ENABLED=false`) |
+| `ADMIN_PASSWORD` | `changeme` | Admin password (when `AUTH_ENABLED=false`) |
+
+```bash
+AUTH_ENABLED=false
+ADMIN_USER=admin
+ADMIN_PASSWORD=changeme
+```
+
+<Aside type="caution" title="No-auth mode">
+  When `AUTH_ENABLED=false`, TalesMUD uses simple username/password authentication stored in
+  the environment. This is only suitable for development or private servers. For public deployments,
+  enable Auth0.
+</Aside>
+
+### Auth0 (Production Authentication)
+
+These variables are only required when `AUTH_ENABLED=true`.
+
+| Variable | Example | Description |
+|----------|---------|-------------|
+| `AUTH0_AUDIENCE` | `https://talesmud.io/api` | Auth0 API audience |
+| `AUTH0_DOMAIN` | `https://your-tenant.auth0.com/` | Auth0 tenant domain |
+| `AUTH0_WK_JWKS` | `https://your-tenant.auth0.com/.well-known/jwks.json` | JWKS endpoint for JWT validation |
+
+```bash
+AUTH_ENABLED=true
+AUTH0_AUDIENCE=https://talesmud.io/api
+AUTH0_DOMAIN=https://your-tenant.auth0.com/
+AUTH0_WK_JWKS=https://your-tenant.auth0.com/.well-known/jwks.json
+```
+
+See the [Auth0 Setup guide](/docs/deployment/auth0-setup) for detailed instructions.
+
+### Database
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SQLITE_PATH` | `./talesmud.db` | Path to the SQLite database file |
+
+```bash
+SQLITE_PATH=./talesmud.db
+```
+
+For Docker deployments, mount a volume and point to the mounted path:
+
+```bash
+SQLITE_PATH=/data/talesmud.db
+```
+
+### Storage
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BACKGROUNDS_PATH` | `./uploads/backgrounds` | Directory for room background images |
+
+```bash
+BACKGROUNDS_PATH=./uploads/backgrounds
+```
+
+### AI Integration (Optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GROQ_API_KEY` | (empty) | Groq API key for AI-assisted character generation |
+
+```bash
+GROQ_API_KEY=gsk_...
+```
+
+When set, TalesMUD uses the Groq API to generate character backstories during character creation.
+If not set, AI generation is silently disabled.
+
+## Complete .env.example
+
+```bash
+# Application settings
+GIN_MODE=debug
+LOG_LEVEL=debug
+PORT=8010
+
+# Authentication
+AUTH_ENABLED=false
+ADMIN_USER=admin
+ADMIN_PASSWORD=changeme
+
+# Auth0 (optional, only needed if AUTH_ENABLED=true)
+AUTH0_AUDIENCE=http://localhost:8010/api
+AUTH0_DOMAIN=https://your-tenant.auth0.com/
+AUTH0_WK_JWKS=https://your-tenant.auth0.com/.well-known/jwks.json
+
+# SQLite database path
+SQLITE_PATH=./talesmud.db
+
+# Background images storage path
+BACKGROUNDS_PATH=./uploads/backgrounds
+```
+
+## Docker Environment
+
+In `docker-compose.yml`, environment variables are set under the `environment` key:
+
+```yaml
+services:
+  talesmud:
+    build: .
+    ports:
+      - "8010:8010"
+    environment:
+      - GIN_MODE=release
+      - SQLITE_PATH=/data/talesmud.db
+      - AUTH_ENABLED=false
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=changeme
+    volumes:
+      - ~/volumes/talesmud/data:/data
+```
+
+## Role System
+
+TalesMUD has a three-tier role system:
+
+| Role | Access |
+|------|--------|
+| **Player** | Play the game, manage own characters |
+| **MUD Creator** | Access the content editor (Creator UI) |
+| **MUD Admin** | Full access including user management, ban system, role promotion |
+
+When `AUTH_ENABLED=false`, the admin user automatically gets the Admin role. When using Auth0,
+roles are managed through user promotion in the admin UI.
+
+## Next Steps
+
+- [Your First World](/docs/getting-started/first-world) — Build your first zone
+- [Auth0 Setup](/docs/deployment/auth0-setup) — Configure production authentication
+- [Docker Deployment](/docs/deployment/docker) — Production deployment guide

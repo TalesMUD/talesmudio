@@ -1,0 +1,192 @@
+---
+title: Characters & Classes
+description: Character creation, the 6 classes, attributes, progression, and equipment.
+---
+
+# Characters & Classes
+
+Characters are the player entities in TalesMUD. Each character has a race, a class, six core
+attributes, equipment slots, a skill loadout, and a persistent game state.
+
+## Character Creation
+
+Players create characters via the onboarding flow:
+1. Choose a **name**
+2. Choose a **race** (affects starting attributes)
+3. Choose a **class** (determines available skills and primary stats)
+4. Start in the designated starting room
+
+## Races
+
+Races modify base attribute values. The race system is data-driven and configurable.
+
+## The Six Classes
+
+TalesMUD ships with six balanced classes, each with a distinct playstyle and skill set:
+
+| Class | Primary Stat | Resource | Playstyle |
+|-------|-------------|----------|-----------|
+| **Warrior** | STR | Cooldowns | Melee DPS / tanking |
+| **Rogue** | DEX | Cooldowns | Burst damage / stealth |
+| **Ranger** | DEX | Cooldowns | Ranged DPS / utility |
+| **Mage** | INT | Mana | Spell DPS / AoE |
+| **Cleric** | WIS | Mana | Healing / support DPS |
+| **Druid** | INT/WIS | Mana | HoT healing / debuffs |
+
+### Primary Attack Attributes
+
+Each class scales their basic auto-attack from a different stat:
+
+```go
+func (c *Character) GetPrimaryAttackAttribute() string {
+    switch strings.ToLower(c.Class.ID) {
+    case "warrior":        return "STR"
+    case "rogue":          return "DEX"
+    case "hunter", "ranger": return "DEX"
+    case "wizard", "mage": return "INT"
+    case "cleric":         return "WIS"
+    case "druid":          return "INT"
+    default:               return "STR"
+    }
+}
+```
+
+## Core Attributes
+
+Every character has six attributes. Each attribute has a **modifier** calculated as `(value - 10) / 2`.
+
+| Attribute | Short | Effect |
+|-----------|-------|--------|
+| **Strength** | STR | Warrior/melee damage, carrying capacity |
+| **Dexterity** | DEX | Rogue/ranger damage, initiative bonus |
+| **Constitution** | CON | Hit point scaling |
+| **Intelligence** | INT | Mage/druid spell power, mana pool |
+| **Wisdom** | WIS | Cleric spell power, mana regeneration |
+| **Charisma** | CHA | NPC interactions, merchant pricing |
+
+### Distributable Points
+
+On each level-up, characters receive **distributable attribute points** that players can spend
+using the `spend` command:
+
+```
+> spend str 2
+You spend 2 points on Strength. (STR: 12 → 14)
+Remaining points: 1
+```
+
+## Hit Points
+
+Max HP is derived from class, level, and CON:
+- Scales with level
+- CON modifier adds a bonus per level
+
+Current HP is tracked separately and reduced by combat damage. HP regenerates out of combat
+(via the `rest` command or natural regeneration).
+
+## Mana System
+
+Mana is only available to caster classes (Mage, Cleric, Druid):
+
+```go
+func (c *Character) CalculateMaxMana() int32 {
+    classID := strings.ToLower(c.Class.ID)
+    switch classID {
+    case "mage", "wizard", "cleric", "druid":
+        intMod := c.GetINTMod()
+        mana := int32(20) + (c.Level * 5) + int32(intMod*4)
+        if mana < 10 { mana = 10 }
+        return mana
+    default:
+        return 0  // Physical classes don't use mana
+    }
+}
+```
+
+Mana regeneration per combat round:
+```go
+func (c *Character) CalculateManaRegen() int32 {
+    regen := int32(1) + int32(c.GetWISMod())
+    if regen < 1 { regen = 1 }
+    return regen
+}
+```
+
+Non-caster classes use **cooldown-based** skills instead of mana.
+
+## Equipment Slots
+
+Characters have 13 equipment slots:
+
+| Slot | Key | Description |
+|------|-----|-------------|
+| `head` | Head | Helmet, hat, hood |
+| `chest` | Chest | Armor, robe |
+| `legs` | Legs | Greaves, pants |
+| `boots` | Boots | Footwear |
+| `hands` | Hands | Gloves |
+| `neck` | Neck | Amulet, pendant |
+| `ring1` | Ring (left) | Ring slot 1 |
+| `ring2` | Ring (right) | Ring slot 2 |
+| `main_hand` | Main Hand | Weapon, wand |
+| `off_hand` | Off Hand | Shield, offhand weapon |
+| `inventory` | Inventory | Carried but unequipped |
+| `container` | Container | Bag/backpack |
+| `purse` | Purse | Currency holder |
+
+Two-handed weapons occupy both `main_hand` and `off_hand`.
+
+### Equipment Commands
+
+```
+equip [item]       — Equip an item from inventory
+unequip [slot]     — Remove item from a slot
+equipment / gear   — Show all equipped items
+```
+
+## Skill Loadout
+
+Characters can equip up to **4 skills** simultaneously. Skills are locked during active combat.
+
+```
+skills             — Show all available and equipped skills
+```
+
+Skills are unlocked by class and level. The available skill pool for each class is defined in
+the skill seed data. See [Skills & Spells](/docs/game-systems/skills-and-spells) for the full list.
+
+## Experience & Leveling
+
+Characters gain XP from:
+- **Combat kills** — XP from defeated enemies
+- **Quest completion** — XP from quest rewards
+- **Room discovery** — Small XP bonus for entering a room for the first time
+- **Area discovery** — Bonus for discovering a new zone/area
+
+The leveling curve is defined in `pkg/mudserver/game/leveling/` and scales exponentially.
+On level-up, the character receives distributable attribute points.
+
+## Character State
+
+Characters persist the following state to SQLite:
+
+| Field | Description |
+|-------|-------------|
+| `currentHitPoints` / `maxHitPoints` | Current and max HP |
+| `currentMana` / `maxMana` | Current and max mana (casters only) |
+| `xp` / `level` | Experience and current level |
+| `gold` | Currency held |
+| `attributes` | Six core attributes and distributable points |
+| `inventory` | All carried items |
+| `equippedItems` | Currently equipped items by slot |
+| `equippedSkills` | Up to 4 equipped skill IDs |
+| `flags` | Key/value map for scripting state and puzzle tracking |
+| `discoveredRooms` / `discoveredAreas` | Explored locations |
+| `revealedExits` | Hidden exits revealed by scripts |
+| `boundRoomId` | Respawn location (set via `bind` command) |
+
+## Next Steps
+
+- [Combat System](/docs/game-systems/combat) — Initiative, auto-attack, skills
+- [Skills & Spells](/docs/game-systems/skills-and-spells) — Full skill list by class
+- [Character Progression](/docs/game-systems/character-progression) — XP curves and leveling

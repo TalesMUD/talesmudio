@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Dark background circle -->
+  <circle cx="32" cy="32" r="32" fill="#0d1117"/>
+  <!-- Outer ring -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="#f5a623" stroke-width="2" opacity="0.6"/>
+  <!-- Cardinal spokes -->
+  <line x1="32" y1="6" x2="32" y2="20" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
+  <line x1="32" y1="44" x2="32" y2="58" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
+  <line x1="6" y1="32" x2="20" y2="32" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
+  <line x1="44" y1="32" x2="58" y2="32" stroke="#f5a623" stroke-width="2" stroke-linecap="round"/>
+  <!-- Inner star / compass rose -->
+  <polygon points="32,14 34,28 48,30 34,32 32,46 30,32 16,30 30,28" fill="#f5a623" opacity="0.9"/>
+  <!-- Center dot -->
+  <circle cx="32" cy="32" r="3" fill="#0d1117"/>
+  <circle cx="32" cy="32" r="1.5" fill="#f5a623"/>
+</svg>

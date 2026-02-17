@@ -1,0 +1,159 @@
+---
+title: Installation
+description: How to install TalesMUD and its prerequisites.
+---
+
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Installation
+
+TalesMUD requires **Go 1.24+** for the backend and **Node.js 20+** for building the frontend.
+The simplest deployment path is Docker.
+
+## Prerequisites
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Go | 1.24+ | Backend server |
+| Node.js | 20+ | Frontend build |
+| Make | Any | Build automation |
+| Docker | 24+ | (Optional) Containerized deployment |
+| Git | Any | Clone the repository |
+
+## Installation
+
+<Tabs>
+  <TabItem label="From Source">
+
+<Steps>
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/TalesMUD/talesmud.git
+   cd talesmud
+   ```
+
+2. **Install Go dependencies**
+
+   ```bash
+   go mod download
+   ```
+
+3. **Install Node dependencies** (for frontend build)
+
+   ```bash
+   cd public/app && npm install && cd ../..
+   cd public/mud-client && npm install && cd ../..
+   ```
+
+4. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env if needed (defaults work for local development)
+   ```
+
+5. **Build everything**
+
+   ```bash
+   make build
+   ```
+
+6. **Run the server**
+
+   ```bash
+   make run-server
+   # → Server starts at http://localhost:8010
+   ```
+</Steps>
+
+  </TabItem>
+  <TabItem label="Docker">
+
+<Steps>
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/TalesMUD/talesmud.git
+   cd talesmud
+   ```
+
+2. **Start with Docker Compose**
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Open the game**
+
+   ```
+   http://localhost:8010
+   ```
+</Steps>
+
+  </TabItem>
+</Tabs>
+
+## Verifying the Installation
+
+After starting the server, open `http://localhost:8010` in your browser. You should see the
+TalesMUD game client. The default admin credentials are:
+
+- Username: `admin`
+- Password: `changeme` (set in `.env` via `ADMIN_PASSWORD`)
+
+<Aside type="caution" title="Change default credentials">
+  Change `ADMIN_PASSWORD` before exposing the server to the internet. The default credentials
+  are for local development only.
+</Aside>
+
+## Development Mode
+
+For active development with hot reload:
+
+```bash
+# Terminal 1: Backend with auto-reload
+make run-server
+
+# Terminal 2: Admin UI dev server
+make run-frontend
+
+# Terminal 3: Game client dev server
+make run-mud-client
+```
+
+Or start all three concurrently:
+
+```bash
+make run
+```
+
+## Directory Structure
+
+```
+talesmud/
+├── cmd/                   # Entry points
+│   └── tales/             # Main server binary
+├── pkg/                   # Go packages
+│   ├── entities/          # Data models (characters, rooms, items, ...)
+│   ├── mudserver/         # Game engine and WebSocket server
+│   ├── server/            # HTTP API (Gin routes and handlers)
+│   ├── service/           # Business logic (Facade pattern)
+│   ├── repository/        # SQLite data access layer
+│   └── scripts/           # Lua scripting engine
+├── public/
+│   ├── app/               # Admin/creator frontend (Svelte)
+│   └── mud-client/        # Game client (Svelte + xterm.js)
+├── zones/                 # World content source (Markdown files)
+├── data/                  # Exported world data (YAML)
+├── docs/                  # Design documentation
+├── nginx/                 # Nginx config example
+├── .env.example           # Environment variable template
+├── docker-compose.yml     # Docker deployment
+└── Makefile               # Build targets
+```
+
+## Next Steps
+
+- [Quick Start](/docs/getting-started/quick-start) — Build your first room and NPC
+- [Configuration](/docs/getting-started/configuration) — Environment variables reference

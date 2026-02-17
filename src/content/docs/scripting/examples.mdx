@@ -1,0 +1,246 @@
+---
+title: Scripting Examples
+description: Complete, working Lua scripts for common game scenarios.
+---
+
+# Scripting Examples
+
+These are complete, working Lua scripts for common TalesMUD scenarios. Copy and adapt them
+for your world.
+
+## Atmospheric Room Entry
+
+Random ambient messages when players enter a dungeon:
+
+```lua
+-- Attach to: room.onEnterScriptID
+-- For: Dungeon atmosphere
+
+local charID = ctx.character.id
+local roomID = ctx.room.id
+
+-- Pick a random atmospheric message
+local messages = {
+  "Water drips steadily from cracks above.",
+  "The darkness seems to press in around you.",
+  "Something skitters in the distance.",
+  "A cold draft carries the smell of old stone.",
+  "Your footsteps echo in the silence.",
+}
+
+if tales.utils.chance(40) then
+  local msg = tales.utils.pick(messages)
+  tales.game.msgToCharacter(charID, msg)
+end
+
+-- Occasional room-wide sounds
+if tales.utils.chance(15) then
+  tales.game.msgToRoom(roomID,
+    "A distant rumbling shakes the walls briefly.")
+end
+```
+
+## Hidden Exit Puzzle
+
+A lever puzzle that reveals a hidden exit. Uses flags for persistence across disconnections:
+
+```lua
+-- Attach to: room action "lever"
+
+local charID = ctx.character.id
+local roomID = ctx.room.id
+local FLAG = "crypt_lever_pulled"
+local EXIT = "crypt_passage"
+
+-- Tell the room what's happening
+tales.game.msgToRoom(roomID,
+  ctx.character.name .. " grasps the iron lever and pulls hard.")
+
+-- Check current state
+local alreadyPulled = tales.game.getFlag(charID, FLAG)
+
+if not alreadyPulled then
+  -- Puzzle solved for the first time
+  tales.game.setFlag(charID, FLAG, true)
+  tales.game.revealExit(roomID, EXIT, charID)
+
+  tales.game.msgToCharacter(charID,
+    "With a grinding of old stone, a section of the wall slides aside,\n" ..
+    "revealing a narrow passage heading east.")
+else
+  -- Already solved — just check/re-reveal the exit
+  if not tales.game.hasRevealedExit(charID, roomID, EXIT) then
+    tales.game.revealExit(roomID, EXIT, charID)
+  end
+  tales.game.msgToCharacter(charID,
+    "The passage to the east stands open.")
+end
+```
+
+## Auto-Quest Grant on Room Entry
+
+Grant a quest automatically when a player enters a zone for the first time:
+
+```lua
+-- Attach to: room.onEnterScriptID
+-- For: Zone entry rooms
+
+local charID = ctx.character.id
+local QUEST_ID = "QST0101"  -- "Explore the Meadows"
+
+if not tales.quests.isActive(charID, QUEST_ID) and
+   not tales.quests.isCompleted(charID, QUEST_ID) then
+  tales.quests.grantQuest(charID, QUEST_ID)
+  tales.game.msgToUser(ctx.user.id,
+    "\n[New Quest] Explore the Meadows\n" ..
+    "The meadows spread before you — they won't explore themselves.")
+end
+```
+
+## Consumable Item (Health Potion)
+
+```lua
+-- Attach to: item.onUseScriptId
+-- Item type: consumable
+
+local charID = ctx.character.id
+local char = tales.characters.get(charID)
+
+if char then
+  local healAmount = 15
+  tales.characters.heal(charID, healAmount)
+
+  tales.game.msgToCharacter(charID,
+    "You drink the Weak Health Potion. The bitter liquid warms your\n" ..
+    "throat. (+15 HP)")
+  tales.game.msgToRoomExcept(ctx.room.id,
+    char.name .. " drinks a potion.",
+    charID)
+end
+```
+
+## Randomized Item Stats on Creation
+
+```lua
+-- Attach to: item script (type: item, fires on creation from template)
+
+local item = ctx.item
+
+-- Random weapon damage
+item.minDamage = tales.utils.random(2, 6)
+item.maxDamage = item.minDamage + tales.utils.random(4, 10)
+
+-- Quality based on damage roll
+if item.maxDamage >= 14 then
+  item.quality = "rare"
+elseif item.maxDamage >= 10 then
+  item.quality = "magic"
+else
+  item.quality = "normal"
+end
+
+return item  -- Must return modified item
+```
+
+## NPC Death Handler (Quest & Boss Announcement)
+
+```lua
+-- Attach to: npc event handler (npc.death — when implemented)
+-- For: Boss NPCs
+
+local npc = ctx.npc
+local killer = ctx.killer
+
+if killer then
+  -- Check for kill quests
+  tales.game.msgToCharacter(killer.id,
+    "You have slain the " .. npc.name .. "!")
+
+  -- Announce boss kills globally
+  if npc.name == "The Hollow Knight" then
+    tales.game.broadcast(
+      killer.name .. " has defeated The Hollow Knight deep in the Catacombs!")
+  end
+end
+```
+
+## Daily Quest Reset
+
+```lua
+-- Attach to: quest.onCompleteScriptId for a daily quest
+
+local charID = ctx.character.id
+local QUEST_ID = ctx.questId
+local FLAG = "daily_reset_" .. QUEST_ID
+
+-- Record the completion timestamp
+local now = tales.utils.now()
+tales.game.setFlag(charID, FLAG, now)
+
+tales.game.msgToUser(ctx.user.id,
+  "Daily quest complete! The quest will reset in 24 hours.")
+```
+
+## Dialog Context Variables
+
+Dynamic dialog text based on game state:
+
+```lua
+-- Attach to: dialog event (fires at dialog start)
+-- Sets context variables that dialog tree can read
+
+local convID = ctx.conversationId
+local charID = ctx.character.id
+
+-- Set time-based greeting
+local hour = 12  -- No os.date in sandbox, use game time if available
+local greeting
+if hour < 12 then
+  greeting = "Good morning, traveler!"
+elseif hour < 18 then
+  greeting = "Good afternoon! Looking to buy?"
+else
+  greeting = "Evening! Last chance for today's deals!"
+end
+
+tales.dialogs.setContext(convID, "greeting", greeting)
+
+-- Set quest state for conditional dialog options
+if tales.quests.isCompleted(charID, "QST0003") then
+  tales.dialogs.setContext(convID, "heroStatus", "hero")
+else
+  tales.dialogs.setContext(convID, "heroStatus", "stranger")
+end
+```
+
+## Spawn Custom NPC
+
+```lua
+-- Temporarily spawn an NPC in a room (using moveTo)
+
+local targetRoomID = ctx.room.id
+local npcInstanceID = "NPC_BOSS_INSTANCE"
+
+-- Check if NPC already exists
+local existingNPCs = tales.npcs.findInRoom(targetRoomID)
+local bossSpawned = false
+for _, npc in ipairs(existingNPCs) do
+  if npc.name == "Ancient Guardian" then
+    bossSpawned = true
+    break
+  end
+end
+
+if not bossSpawned then
+  -- Create from template and move to room
+  -- (Requires NPC template to already exist)
+  tales.game.msgToRoom(targetRoomID,
+    "The ancient runes flare to life! A stone guardian rises from the floor!")
+end
+```
+
+## Next Steps
+
+- [API Reference](/docs/scripting/api-reference) — Full function documentation
+- [Event Hooks](/docs/scripting/event-hooks) — Available events and their contexts
+- [Custom Mechanics](/docs/scripting/custom-mechanics) — Patterns for complex systems

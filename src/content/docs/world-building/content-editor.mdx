@@ -1,0 +1,93 @@
+---
+title: The Content Editor
+description: Using TalesMUD's web-based creator interface for world building.
+---
+
+# The Content Editor
+
+The Creator UI is TalesMUD's built-in web editor for creating and managing all game content.
+It's accessible at `http://localhost:8010/admin` for users with the MUD Creator or MUD Admin role.
+
+## Accessing the Editor
+
+1. Start the TalesMUD server
+2. Navigate to `http://localhost:8010/admin`
+3. Log in with your admin credentials
+4. The Creator UI sidebar shows all content categories
+
+## Content Categories
+
+The sidebar provides access to all entity types:
+
+| Category | What You Edit |
+|----------|--------------|
+| **Rooms** | Room descriptions, exits, actions, spawners, scripts |
+| **NPCs** | NPC templates with enemy/merchant/dialog traits |
+| **Items** | Item templates with types, qualities, attributes |
+| **Quests** | Quest definitions with objectives and rewards |
+| **Dialogs** | Dialog tree nodes and options |
+| **Skills** | Class skill definitions |
+| **Scripts** | Lua script editor with syntax highlighting |
+| **Loot Tables** | Enemy drop configurations |
+| **World Map** | Visual map of rooms with coordinates |
+
+## Common Workflow
+
+**Creating a new entity:**
+1. Select the category in the sidebar
+2. Click **New** (top right)
+3. Fill in the fields
+4. Click **Save**
+
+**Editing an existing entity:**
+1. Select the category
+2. Use the filter/search to find the entity
+3. Click the entity row to open the detail pane
+4. Edit and save
+
+**Linking entities:**
+- Rooms → Exits: select target room from dropdown
+- Rooms → On Enter Script: select script from dropdown
+- NPCs → Dialog: select dialog tree from dropdown
+- Quests → Source NPC: select NPC from dropdown
+
+## World Map
+
+The World Map view shows all rooms that have `coordinates` set. Rooms appear as nodes on a 2D grid:
+
+- Pan and zoom to navigate
+- Click a room node to jump to its editor
+- Unconnected rooms (no coordinates) don't appear on the map
+
+Set coordinates on rooms to build out your visual map.
+
+## Lua Script Editor
+
+The script editor in the **Scripts** section provides:
+- Syntax highlighting for Lua
+- A code editor with line numbers
+- Script type selection (room, item, npc, quest, custom)
+- Run script button for testing
+
+## Import/Export
+
+The Creator UI supports exporting world content to YAML files for version control,
+and importing YAML files to bulk-load content.
+
+Access via the **Export** and **Import** buttons in the top menu.
+
+## Role Requirements
+
+| Action | Required Role |
+|--------|--------------|
+| View content | MUD Creator |
+| Create/edit content | MUD Creator |
+| Delete content | MUD Creator |
+| Manage users | MUD Admin |
+| Access user list | MUD Admin |
+| Ban/unban users | MUD Admin |
+
+## Next Steps
+
+- [Creating Rooms](/docs/world-building/creating-rooms) — Room configuration guide
+- [Lua Scripting](/docs/scripting/overview) — Writing scripts for your content

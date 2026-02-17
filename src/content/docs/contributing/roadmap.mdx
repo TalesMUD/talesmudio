@@ -1,0 +1,64 @@
+---
+title: Roadmap
+description: Planned features and future development direction for TalesMUD.
+---
+
+# Roadmap
+
+TalesMUD is actively developed. This page tracks the planned features and their status.
+
+## Current Status: v0.1
+
+The framework is functional and used in production at [Veilspan](https://veilspan.com).
+Core systems are complete. The focus is expanding NPC AI, scripting hooks, and the content editor.
+
+## Completed ✅
+
+- Turn-based combat with initiative, skills, status effects
+- Character system (6 classes, 6 attributes, 10 equipment slots)
+- Quest system (Kill, Collect, Deliver, Visit, Talk, Custom Lua objectives)
+- NPC system (enemy, merchant, quest-giver traits)
+- Dialog tree system with branching, conditions, and context variables
+- Item system (templates, instances, quality tiers)
+- Lua scripting with 8 API modules
+- Web-based content editor (CRUD for all entities)
+- Auth0 authentication and 3-tier role system
+- Docker deployment support
+- World import/export (Markdown → YAML pipeline)
+- Room enter scripts (onEnterScript)
+- Hidden exit reveal system
+- Per-character game flags for persistent state
+
+## In Progress 🔧
+
+- NPC AI state machine (patrol, flee, conversation-triggered)
+- Additional scripting event hooks (player.death, npc.death, item.pickup)
+- Improved world map visualization
+- Mobile UI improvements
+
+## Planned 📋
+
+### Near Term
+- **Party system** — Grouping players, shared XP, group combat
+- **Crafting system** — Item creation from components
+- **Cooldown UI** — Visual skill cooldown display in game client
+- **Global event system** — Scripted world events, scheduled triggers
+
+### Medium Term
+- **Character templates** — Preset builds for new players
+- **Faction system** — Reputation with factions, faction-gated content
+- **More NPC AI** — Patrol paths, lure behavior, flee on low HP
+- **Pet/companion system** — Player-owned NPC companions
+
+### Long Term
+- **Dungeon generator** — Procedural room generation for roguelike zones
+- **PvP system** — Player vs player combat with consent flags
+- **Voice/audio** — Ambient sound hooks via script
+- **Plugin system** — Go plugin support for custom game systems
+
+## How to Contribute
+
+The roadmap items are tracked as GitHub issues. Pick one that interests you,
+comment that you're working on it, and submit a PR when ready.
+
+See [Pull Request Guidelines](/docs/contributing/pull-requests) for submission standards.

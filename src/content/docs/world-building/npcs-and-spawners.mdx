@@ -1,0 +1,178 @@
+---
+title: NPCs & Spawners
+description: Creating NPCs, configuring enemy and merchant traits, and setting up spawners.
+---
+
+# NPCs & Spawners
+
+NPCs (Non-Player Characters) are the living inhabitants of your world: enemies to fight,
+merchants to trade with, quest-givers to talk to. Each NPC is a template from which
+instances are spawned into rooms.
+
+## NPC Templates vs Instances
+
+- **Template**: The blueprint stored in the database. Defines name, stats, traits.
+- **Instance**: A copy created when a spawner activates. Has a unique instance ID.
+
+```
+NPC Template: "Cave Goblin" (ENM0003)
+    ↓ Spawner activates
+NPC Instance: "Cave Goblin" (ENM0003-abc123) in Room R0104
+    ↓ Player kills it
+Instance deleted, spawner starts respawn timer
+```
+
+## Creating an NPC
+
+Via the Creator UI: **NPCs → New**
+
+Or via the REST API:
+
+```bash
+curl -X POST http://localhost:8010/api/npcs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Cave Goblin",
+    "description": "A small, green-skinned creature with yellow eyes and sharp claws.",
+    "detail": "The goblin watches you with calculating intelligence.",
+    "enemyTrait": {
+      "level": 2,
+      "maxHitPoints": 20,
+      "currentHitPoints": 20,
+      "attack": 4,
+      "defense": 1,
+      "xpReward": 15,
+      "goldDrop": 3
+    }
+  }'
+```
+
+## NPC Fields
+
+| Field | Description |
+|-------|-------------|
+| `name` | Display name |
+| `description` | What players see when they look at the NPC |
+| `detail` | Detailed description when players examine the NPC |
+| `dialogId` | ID of a dialog tree to use when talked to |
+| `enemyTrait` | Enemy combat stats (makes NPC attackable) |
+| `merchantTrait` | Merchant inventory (makes NPC a shopkeeper) |
+
+## Enemy Trait
+
+Add the enemy trait to make an NPC attackable in combat:
+
+```json
+{
+  "enemyTrait": {
+    "level": 3,
+    "maxHitPoints": 45,
+    "currentHitPoints": 45,
+    "attack": 6,
+    "defense": 2,
+    "xpReward": 35,
+    "goldDrop": 10,
+    "lootTableId": "LT0003"
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `level` | Enemy level (affects scaling) |
+| `maxHitPoints` | Max HP |
+| `attack` | Base attack damage |
+| `defense` | Damage reduction |
+| `xpReward` | XP given to each killer |
+| `goldDrop` | Gold dropped in room on death |
+| `lootTableId` | ID of a loot table for item drops |
+
+## Merchant Trait
+
+Add the merchant trait to make an NPC a shopkeeper:
+
+```json
+{
+  "merchantTrait": {
+    "inventory": [
+      {
+        "templateId": "ITM0012",
+        "stock": 10,
+        "maxStock": 10,
+        "price": 8,
+        "restockTime": 3600
+      }
+    ]
+  }
+}
+```
+
+Players interact via:
+```
+> talk merchant
+> list            — show available items
+> buy [item]      — purchase an item
+> sell [item]     — sell an item
+> value [item]    — check selling price
+```
+
+## Quest-Giver NPCs
+
+NPCs automatically get quest dialog options injected when they are the `source.npcId`
+for a quest. No special trait needed — any NPC can give quests.
+
+See [Quest System](/docs/world-building/quests) for the quest data format.
+
+## Spawners
+
+Spawners are configured on rooms. They automatically create NPC instances:
+
+```json
+{
+  "spawners": [
+    {
+      "npcTemplateId": "ENM0003",
+      "maxCount": 2,
+      "respawnTime": 90,
+      "currentCount": 0
+    }
+  ]
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `npcTemplateId` | The NPC template to spawn |
+| `maxCount` | Maximum instances in the room at once |
+| `respawnTime` | Seconds between spawn attempts |
+| `currentCount` | Current live instance count (managed by server) |
+
+The spawner tick runs every **5 seconds**. If `currentCount < maxCount` and the respawn
+timer has elapsed, a new instance is created.
+
+## NPC AI States
+
+NPCs currently support:
+- **Idle** — standing in the room, waiting to be interacted with
+- **Aggressive** — attacks players on sight (based on enemy trait)
+- **Merchant** — sells items when players interact
+
+More complex AI (patrol, flee, conversation-triggered behavior) is on the roadmap.
+
+## Existing NPCs in Veilspan
+
+| ID | Name | Location | Role |
+|----|------|----------|------|
+| NPC0001 | Mira Thornwood | Weary Wanderer Inn | Innkeeper, merchant |
+| NPC0002 | Bramwick | General Store | Merchant |
+| NPC0003 | Kara Ironhand | Smithy | Blacksmith |
+| NPC0004 | Captain Aldric | Guard Post | Quest-giver |
+| NPC0005 | Guardsman Thom | Town Gate | Guard |
+| NPC0007 | Archivist Maren | Archive | Scholar, quest-giver |
+
+## Next Steps
+
+- [Dialog Trees](/docs/world-building/dialog-trees) — Authoring branching conversations
+- [Quests](/docs/world-building/quests) — Connecting NPCs to quests
+- [Loot Tables](/docs/game-systems/loot-tables) — Configuring enemy drops

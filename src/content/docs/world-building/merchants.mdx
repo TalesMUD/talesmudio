@@ -1,0 +1,90 @@
+---
+title: Merchants & Economy
+description: Setting up merchant NPCs, inventory, pricing, and stock management.
+---
+
+# Merchants & Economy
+
+Merchants are NPCs with the merchant trait, allowing players to buy and sell items.
+The merchant system supports per-item pricing, stock limits, and automatic restock.
+
+## Creating a Merchant
+
+Add the `merchantTrait` to any NPC:
+
+```json
+{
+  "name": "Bramwick",
+  "description": "A stout merchant with a calculating smile and ink-stained fingers.",
+  "merchantTrait": {
+    "inventory": [
+      {
+        "templateId": "ITM0012",
+        "name": "Weak Health Potion",
+        "stock": 10,
+        "maxStock": 10,
+        "price": 8,
+        "restockTime": 3600
+      },
+      {
+        "templateId": "ITM0001",
+        "name": "Dusty Torch",
+        "stock": 20,
+        "maxStock": 20,
+        "price": 2,
+        "restockTime": 1800
+      }
+    ]
+  }
+}
+```
+
+## Merchant Inventory Fields
+
+| Field | Description |
+|-------|-------------|
+| `templateId` | Item template ID to sell |
+| `name` | Display name in the shop listing |
+| `stock` | Current stock count |
+| `maxStock` | Maximum stock (for restock) |
+| `price` | Buy price in gold |
+| `restockTime` | Seconds until stock is replenished |
+
+## Player Commands
+
+```
+talk [merchant]     — Start conversation (shows merchant option)
+list                — Show merchant's inventory with prices
+buy [item]          — Buy an item from the merchant
+sell [item]         — Sell an item to the merchant
+value [item]        — Check how much the merchant will pay
+```
+
+## Pricing
+
+The **buy price** is set per-item in the merchant inventory.
+
+The **sell price** (what the merchant pays) is typically a percentage of `item.basePrice`.
+The exact sell multiplier is configured server-side.
+
+## Restock
+
+Stock replenishes automatically after `restockTime` seconds since the last purchase depleted
+the stock. `maxStock` is the stock level restocked to.
+
+A `restockTime` of `0` means infinite stock (useful for basic supplies like potions).
+
+## Currency
+
+TalesMUD uses a gold-based economy. Characters have a `gold` field tracking their currency.
+
+Example currency items:
+- `ITM0006` — Copper Bits (stackable, max 999)
+- `ITM0015` — Silver Mark (stackable, max 999)
+
+These are collectible items used as currency drops, separate from the character's gold balance.
+
+## Next Steps
+
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Creating NPC templates
+- [Items & Equipment](/docs/world-building/items-and-equipment) — Item template creation

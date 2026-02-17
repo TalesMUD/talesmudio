@@ -1,0 +1,202 @@
+---
+title: Custom Mechanics
+description: Patterns for building complex systems with Lua scripting.
+---
+
+# Custom Mechanics
+
+These patterns show how to implement common custom game mechanics using TalesMUD's Lua scripting.
+
+## Puzzle System
+
+A multi-step puzzle where players must perform actions in the right order:
+
+```lua
+-- Room action script for a combination lock puzzle
+-- Actions: "press_red", "press_blue", "press_green"
+
+local charID = ctx.character.id
+local roomID = ctx.room.id
+local action = ctx.action.name  -- The triggered action name
+
+-- Track puzzle state per character
+local SEQUENCE = {"press_red", "press_blue", "press_green"}
+local currentStep = tales.game.getFlag(charID, "puzzle_step") or 0
+
+if action == SEQUENCE[currentStep + 1] then
+  -- Correct next step
+  currentStep = currentStep + 1
+  tales.game.setFlag(charID, "puzzle_step", currentStep)
+
+  tales.game.msgToCharacter(charID,
+    "The rune glows briefly as you press it. (" ..
+    currentStep .. "/" .. #SEQUENCE .. " complete)")
+
+  if currentStep == #SEQUENCE then
+    -- Puzzle solved!
+    tales.game.setFlag(charID, "puzzle_solved", true)
+    tales.game.setFlag(charID, "puzzle_step", 0)
+    tales.game.revealExit(roomID, "vault", charID)
+    tales.game.msgToCharacter(charID,
+      "With a resounding CLICK, the vault door swings open to the east!")
+  end
+else
+  -- Wrong order — reset
+  tales.game.setFlag(charID, "puzzle_step", 0)
+  tales.game.msgToCharacter(charID,
+    "The runes flash red and go dark. The sequence must be wrong.")
+end
+```
+
+## Timed Event Trap
+
+A room that damages players after they've been inside for too long:
+
+```lua
+-- Room enter script: starts a "trap" timer
+
+local charID = ctx.character.id
+local roomID = ctx.room.id
+local FLAG = "trap_entry_time_" .. charID
+
+-- Record entry time
+local now = tales.utils.now()
+tales.game.setFlag(charID, FLAG, now)
+
+tales.game.msgToCharacter(charID,
+  "You feel an ominous pressure as you enter. Don't linger here.")
+```
+
+```lua
+-- Room tick script (room.update — when implemented):
+-- Check all characters and damage lingerers
+
+local chars = tales.rooms.getCharacters(ctx.room.id)
+local now = tales.utils.now()
+
+for _, char in ipairs(chars) do
+  local FLAG = "trap_entry_time_" .. char.id
+  local entryTime = tales.game.getFlag(char.id, FLAG)
+
+  if entryTime and (now - entryTime) > 30 then  -- 30 seconds
+    tales.characters.damage(char.id, 5)
+    tales.game.msgToCharacter(char.id,
+      "The dark energy of this place gnaws at you. (-5 HP)")
+  end
+end
+```
+
+## Conditional Spawn
+
+Spawn an NPC only when a quest is active:
+
+```lua
+-- Room enter script
+
+local charID = ctx.character.id
+local roomID = ctx.room.id
+
+-- Only spawn the Stranger if the player has the right quest active
+if tales.quests.isActive(charID, "QST0008") then
+  local npcsInRoom = tales.npcs.findInRoom(roomID)
+  local strangerPresent = false
+
+  for _, npc in ipairs(npcsInRoom) do
+    if npc.name == "The Stranger" then
+      strangerPresent = true
+      break
+    end
+  end
+
+  if not strangerPresent then
+    tales.game.msgToCharacter(charID,
+      "A cloaked figure materializes from the shadows, watching you.")
+    -- Note: Direct NPC creation from script is not yet implemented
+    -- Use spawners with quest conditions for current implementation
+  end
+end
+```
+
+## Counter / Collectible Tracking
+
+Track how many times a character has done something across sessions:
+
+```lua
+-- Room action script: collecting "ancient shards"
+
+local charID = ctx.character.id
+local COUNT_KEY = "shards_collected"
+
+local current = tales.game.getFlag(charID, COUNT_KEY) or 0
+
+if current < 5 then
+  current = current + 1
+  tales.game.setFlag(charID, COUNT_KEY, current)
+
+  tales.game.giveItem(charID, "ITM_ANCIENT_SHARD")
+  tales.game.msgToCharacter(charID,
+    "You collect an ancient shard. (" .. current .. "/5)")
+
+  if current == 5 then
+    tales.game.msgToUser(ctx.user.id,
+      "Quest Updated: You have collected all 5 ancient shards!")
+    tales.quests.setProgress(charID, "QST0012", "collect_shards", 5)
+  end
+else
+  tales.game.msgToCharacter(charID,
+    "You've already taken all the shards from here.")
+end
+```
+
+## Dynamic NPC Dialogue Based on Player State
+
+Use context variables to customize NPC responses:
+
+```lua
+-- Dialog start script for a quest-giver NPC
+
+local convID = ctx.conversationId
+local charID = ctx.character.id
+
+-- Check quest states
+if tales.quests.isCompleted(charID, "QST0001") then
+  tales.dialogs.setContext(convID, "playerStatus", "hero")
+elseif tales.quests.isActive(charID, "QST0001") then
+  tales.dialogs.setContext(convID, "playerStatus", "on_quest")
+else
+  tales.dialogs.setContext(convID, "playerStatus", "newcomer")
+end
+
+-- Check combat history (via flags set elsewhere)
+local killCount = tales.game.getFlag(charID, "goblin_kills") or 0
+tales.dialogs.setContext(convID, "goblinKills", tostring(killCount))
+```
+
+## Exploration Bonus Reward
+
+Grant a one-time reward for reaching a hidden area:
+
+```lua
+-- Room enter script for a secret area
+
+local charID = ctx.character.id
+local FLAG = "found_secret_vault"
+
+local alreadyFound = tales.game.getFlag(charID, FLAG)
+
+if not alreadyFound then
+  tales.game.setFlag(charID, FLAG, true)
+  tales.characters.giveXP(charID, 100)
+  tales.game.giveItem(charID, "ITM_EXPLORER_BADGE")
+
+  tales.game.msgToCharacter(charID,
+    "You have discovered the Secret Vault!\n" ..
+    "Achievement: Explorer — +100 XP and an Explorer's Badge!")
+end
+```
+
+## Next Steps
+
+- [API Reference](/docs/scripting/api-reference) — Full `tales.*` function reference
+- [Examples](/docs/scripting/examples) — More complete script examples
+- [Event Hooks](/docs/scripting/event-hooks) — Available event triggers

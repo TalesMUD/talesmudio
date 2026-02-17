@@ -1,0 +1,116 @@
+---
+title: Mana System
+description: Mana pools, regeneration, and mana-based spellcasting for caster classes.
+---
+
+# Mana System
+
+Mana is the resource used by caster classes (Mage, Cleric, Druid) for skills and spells.
+Physical classes (Warrior, Rogue, Ranger) have no mana pool and use cooldowns instead.
+
+## Mana Pool
+
+Max mana is calculated based on class, level, and INT modifier:
+
+```go
+func (c *Character) CalculateMaxMana() int32 {
+    switch c.Class.ID {
+    case "mage", "wizard", "cleric", "druid":
+        intMod := c.GetINTMod()  // (INT - 10) / 2
+        mana := int32(20) + (c.Level * 5) + int32(intMod * 4)
+        if mana < 10 { mana = 10 }
+        return mana
+    default:
+        return 0  // No mana for physical classes
+    }
+}
+```
+
+**Example at level 5, INT 16 (modifier +3):**
+```
+max_mana = 20 + (5 × 5) + (3 × 4) = 20 + 25 + 12 = 57
+```
+
+## Mana Regeneration
+
+Mana regenerates each combat round based on WIS modifier:
+
+```go
+func (c *Character) CalculateManaRegen() int32 {
+    regen := int32(1) + int32(c.GetWISMod())  // 1 + (WIS - 10) / 2
+    if regen < 1 { regen = 1 }
+    return regen
+}
+```
+
+**Example with WIS 14 (modifier +2):**
+```
+mana_regen_per_round = 1 + 2 = 3
+```
+
+Out-of-combat mana regeneration is faster (via `rest` command).
+
+## Mana Costs by Class
+
+### Mage
+
+| Skill | Cost |
+|-------|------|
+| Fireball | 8 |
+| Frost Shield | 6 |
+| Lightning Bolt | 15 |
+| Arcane Burst | 20 |
+| Mana Shield | 12 |
+
+### Cleric
+
+| Skill | Cost |
+|-------|------|
+| Heal | 8 |
+| Holy Strike | 6 |
+| Shield of Faith | 10 |
+| Smite | 15 |
+| Divine Light | 25 |
+
+### Druid
+
+| Skill | Cost |
+|-------|------|
+| Wrath | 6 |
+| Rejuvenation | 8 |
+| Entangle | 10 |
+| Starfire | 18 |
+| Barkskin | 12 |
+
+## Mana Shield
+
+The Mage's **Mana Shield** skill converts incoming HP damage into mana drain:
+
+```
+When Mana Shield is active:
+    damage_absorbed = min(incoming_damage, mana_shield_absorption)
+    character.mana -= damage_absorbed
+    hp_damage = incoming_damage - damage_absorbed
+```
+
+When mana runs out, the shield breaks and excess damage hits HP.
+
+## Managing Mana in Combat
+
+Tips for caster classes:
+1. Open with high-damage spells while mana is full
+2. Use mana regen rounds (basic attack instead of spells) when low
+3. Equip skills with lower costs for sustained fights
+4. Higher WIS improves regen rate for longer fights
+
+## Commands
+
+```
+status / cs / combat    — Shows current HP and mana in combat
+rest                    — Regenerates HP and mana out of combat
+```
+
+## Next Steps
+
+- [Skills & Spells](/docs/game-systems/skills-and-spells) — Full mana skill list
+- [Character Progression](/docs/game-systems/character-progression) — INT and WIS scaling

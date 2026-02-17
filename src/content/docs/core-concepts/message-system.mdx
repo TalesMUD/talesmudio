@@ -1,0 +1,94 @@
+---
+title: Message System
+description: How TalesMUD routes messages to players — audience types and message flow.
+---
+
+# Message System
+
+Every action in TalesMUD produces one or more messages that are sent to specific audiences.
+Understanding the message system helps when writing scripts that communicate with players.
+
+## Message Types
+
+TalesMUD defines several message types that the client interprets differently:
+
+| Type | Description |
+|------|-------------|
+| `default` | Standard game text — room descriptions, command output |
+| `enterRoom` | Room entry — triggers minimap update and room description display |
+| `createCharacter` | Character creation flow |
+| `selectCharacter` | Character selection screen |
+| `ping` | Keepalive ping |
+| `quest.*` | Quest state updates (started, progress, completed) |
+| `system` | Server announcements |
+
+## Audience Types
+
+When a game action produces output, it's sent to one of these audiences:
+
+| Audience | Description |
+|----------|-------------|
+| `origin` | Only the player who triggered the action |
+| `user` | A specific user by user ID |
+| `room` | All players currently in the same room |
+| `roomWithoutOrigin` | All players in the room except the one who acted |
+| `global` | All connected players |
+| `system` | Server-level system messages |
+
+## Sending Messages from Lua
+
+The `tales.game` module provides all message sending functions:
+
+```lua
+-- To the acting character only
+tales.game.msgToCharacter(characterID, "You feel a chill run down your spine.")
+
+-- To all players in a room
+tales.game.msgToRoom(roomID, "A rumbling sound echoes through the cavern.")
+
+-- To the room except one character
+tales.game.msgToRoomExcept(roomID, "The stranger eyes you with suspicion.",
+                            excludeCharacterID)
+
+-- To a specific user
+tales.game.msgToUser(userID, "Quest updated!")
+
+-- To everyone connected
+tales.game.broadcast("The Goblin King has been slain!")
+
+-- Log to server
+tales.game.log("info", "Script executed successfully.")
+```
+
+## Message Rendering
+
+The game client renders messages as HTML in the xterm.js terminal. Messages support:
+- ANSI color codes for colored text
+- HTML-safe text (special characters are escaped)
+- Newlines for multi-line messages
+
+## Room Text Overlays
+
+TalesMUD supports a special "overlay" message type — translucent messages that appear
+briefly over the game terminal and auto-dismiss. These are used for ambient atmospheric
+text that shouldn't scroll through the terminal.
+
+## Room Entry Messages
+
+When a player enters a room, the server sends:
+1. A room display message (name, description, exits, visible NPCs, visible items)
+2. An `enterRoom` type message that triggers the minimap update
+3. Any ambient overlay messages (if configured)
+4. The room's `onEnterScript` fires (if configured)
+
+## Quest Notifications
+
+Quest progress updates send structured messages that the client displays in the quest log:
+- `quest.started` — Quest accepted notification
+- `quest.progress` — Objective progress changed
+- `quest.completed` — All objectives done, turn-in available
+
+## Next Steps
+
+- [Lua Scripting Overview](/docs/scripting/overview) — Write scripts that send messages
+- [The Game Loop](/docs/core-concepts/game-loop) — How messages are processed

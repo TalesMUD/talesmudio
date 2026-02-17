@@ -1,0 +1,125 @@
+---
+title: Code Structure
+description: How TalesMUD's Go codebase is organized and the key patterns used.
+---
+
+# Code Structure
+
+## Package Organization
+
+TalesMUD follows a layered architecture. The dependency direction flows inward:
+`mudserver → service → repository`, never the reverse.
+
+```
+pkg/
+├── entities/     — Data models (no business logic, no DB access)
+├── repository/   — SQLite data access (depends on entities)
+├── service/      — Business logic (depends on repository, entities)
+├── server/       — HTTP API (depends on service)
+├── mudserver/    — WebSocket game server (depends on service)
+│   └── game/     — Game engine, commands, combat
+└── scripts/      — Lua scripting engine (depends on service)
+```
+
+## Key Patterns
+
+### Facade Pattern
+
+The `service/facade.go` provides a single access point to all services:
+
+```go
+type Facade interface {
+    Users() UserService
+    Characters() CharacterService
+    Rooms() RoomService
+    Items() ItemService
+    NPCs() NPCService
+    Dialogs() DialogService
+    Quests() QuestService
+    Skills() SkillService
+    Scripts() ScriptService
+    Loot() LootService
+    Parties() PartyService
+    Runner() RunnerService
+}
+```
+
+The game engine holds a Facade reference. This decouples the game logic from specific service implementations.
+
+### Generic Repository
+
+`pkg/repository/sqlite_generic.go` provides a generic CRUD repository:
+
+```go
+type GenericRepository[T any] struct {
+    db        *sql.DB
+    tableName string
+}
+
+func (r *GenericRepository[T]) FindByID(id string) (*T, error) {
+    row := r.db.QueryRow("SELECT data FROM "+r.tableName+" WHERE id = ?", id)
+    var jsonData string
+    if err := row.Scan(&jsonData); err != nil { return nil, err }
+    var entity T
+    json.Unmarshal([]byte(jsonData), &entity)
+    return &entity, nil
+}
+```
+
+### Command Interface
+
+Commands implement a simple interface:
+
+```go
+type Command interface {
+    Keys() []string          // Command aliases
+    Execute(ctx *GameContext, args string)
+}
+```
+
+The `CommandProcessor` tries each registered command's `Keys()` against the player input.
+Commands also have a `RoomProcessor` variant for room-specific commands.
+
+### Trait Composition
+
+Entities use Go struct embedding for trait composition:
+
+```go
+type Character struct {
+    *entities.Entity      // ID, Created, Updated
+    traits.BelongsUser    // UserID
+    traits.CurrentRoom    // RoomID
+    // ... character-specific fields
+}
+```
+
+## Adding a New Entity Type
+
+1. Define the struct in `pkg/entities/yourtype/`
+2. Create a repository interface and SQLite implementation in `pkg/repository/`
+3. Add a service interface and implementation in `pkg/service/`
+4. Add the service to the Facade interface and implementation
+5. Add REST API handlers in `pkg/server/handler/`
+6. Register routes in `pkg/server/server.go`
+
+## Lua Modules
+
+Each `tales.*` module is implemented as a Go file in:
+```
+pkg/scripts/runner/lua/modules/
+├── items_module.go
+├── rooms_module.go
+├── characters_module.go
+├── npcs_module.go
+├── dialogs_module.go
+├── quests_module.go
+├── game_module.go
+└── utils_module.go
+```
+
+Each module registers functions into the Lua VM state.
+
+## Next Steps
+
+- [Development Setup](/docs/contributing/development-setup) — Environment setup
+- [Build from Source](/docs/contributing/building-from-source) — Build process

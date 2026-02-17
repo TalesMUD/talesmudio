@@ -1,0 +1,166 @@
+---
+title: Creating Rooms
+description: How to create, configure, and connect rooms in TalesMUD.
+---
+
+# Creating Rooms
+
+Rooms are the fundamental building block of a TalesMUD world. Every room has a name,
+description, exits to neighboring rooms, and optional interactive elements.
+
+## Using the Creator UI
+
+The easiest way to create rooms is via the Creator UI at `http://localhost:8010/admin`:
+
+1. Navigate to **Rooms → New**
+2. Fill in the required fields
+3. Save the room
+4. Link exits to other rooms
+
+## Room Fields
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Display name shown to players (e.g., "The Dark Cavern") |
+| **Description** | Prose description — what the player sees when they `look` |
+| **Area** | Zone grouping (e.g., `catacombs`, `oldtown`, `meadows`) |
+| **Coordinates** | X, Y, Z for world map display |
+| **Background** | Image filename for the game client backdrop |
+| **On Enter Script** | Lua script ID to run when players enter |
+| **Exits** | Directional links to other rooms |
+| **Actions** | Interactive objects (levers, altars, etc.) |
+| **Spawners** | NPC spawn configurations |
+
+## Writing Good Room Descriptions
+
+Room descriptions are the primary way players experience the world. Write in second person, present tense:
+
+```
+A narrow passage carved through dark stone. The walls are slick with moisture,
+and the air smells of earth and decay. A faint light glimmers from the north.
+Your footsteps echo unnaturally in the silence.
+
+Exits: [north] [south]
+```
+
+Tips:
+- Set the atmosphere in the first sentence
+- Mention environmental details that hint at gameplay (the glimmer from the north)
+- Keep it concise — players read this repeatedly
+- Mention obvious interactive elements ("A lever protrudes from the east wall")
+
+## Exits
+
+Exits connect rooms. Standard directions: `north`, `south`, `east`, `west`, `up`, `down`.
+You can also use custom exit names like `gate`, `trapdoor`, or `portal`.
+
+Via the REST API:
+
+```json
+{
+  "exits": {
+    "north": {
+      "targetRoomId": "room-uuid-here",
+      "hidden": false,
+      "description": "A passage leads north"
+    }
+  }
+}
+```
+
+### Hidden Exits
+
+Hidden exits don't appear in the room description until revealed by a script:
+
+```json
+{
+  "exits": {
+    "secret": {
+      "targetRoomId": "vault-room-id",
+      "hidden": true
+    }
+  }
+}
+```
+
+```lua
+-- In a room action or room enter script:
+tales.game.revealExit(roomID, "secret", characterID)
+```
+
+## Room Actions
+
+Actions are named interactive triggers:
+
+```json
+{
+  "actions": [
+    {
+      "name": "lever",
+      "description": "An iron lever set into the wall.",
+      "scriptId": "SCR0012"
+    },
+    {
+      "name": "altar",
+      "description": "A stone altar carved with runes.",
+      "scriptId": "SCR0013"
+    }
+  ]
+}
+```
+
+Players interact via: `use lever` or just `lever` (if the room action is named as a single word).
+
+## Coordinates for World Map
+
+Set coordinates to make your rooms appear on the visual world map in the Creator UI:
+
+```json
+{
+  "coordinates": { "x": 5, "y": 3, "z": 0 }
+}
+```
+
+Z=0 is the surface, negative Z is underground, positive Z is elevated.
+
+## REST API
+
+```bash
+# Create a room
+curl -X POST http://localhost:8010/api/rooms \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "The Dark Cavern",
+    "description": "A narrow cave carved by water. Stalactites hang from the ceiling.",
+    "area": "rat_warrens",
+    "coordinates": { "x": 1, "y": 2, "z": -1 }
+  }'
+
+# Update exits (link two rooms together)
+curl -X PUT http://localhost:8010/api/rooms/ROOM_ID \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "exits": {
+      "north": { "targetRoomId": "OTHER_ROOM_ID" }
+    }
+  }'
+```
+
+## Content Source Files
+
+World content is authored as Markdown files in `zones/` and exported to YAML in `data/`:
+
+```
+zones/Z03_gloomfen_marsh/rooms/R0301_marsh_edge.md
+data/rooms/R0301.yaml
+```
+
+**Always author in `zones/`** — never edit files in `data/` directly.
+
+## Next Steps
+
+- [Building Zones](/docs/world-building/building-zones) — Organizing rooms into zones
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Adding NPCs and enemies
+- [Lua Scripting](/docs/scripting/overview) — Dynamic room behavior

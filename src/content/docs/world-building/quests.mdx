@@ -1,0 +1,252 @@
+---
+title: Quests
+description: Complete quest authoring guide — objective types, rewards, prerequisites, and NPC integration.
+---
+
+# Quests
+
+TalesMUD's quest system is data-driven. Every quest is a JSON/YAML document with objectives,
+rewards, prerequisites, and optional Lua completion scripts. Progress is tracked automatically
+for Kill, Collect, Deliver, Visit, and Talk objectives.
+
+## Quick Start: Minimal Quest
+
+```bash
+curl -X POST http://localhost:8010/api/quests \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Rat Problem",
+    "description": "The cellars are overrun with rats. Clear them out.",
+    "category": "side",
+    "level": 1,
+    "source": {
+      "type": "npc",
+      "npcId": "NPC0001"
+    },
+    "objectives": [
+      {
+        "id": "obj1",
+        "type": "kill",
+        "description": "Kill 5 Catacomb Rats",
+        "targetId": "ENM0001",
+        "targetName": "Catacomb Rat",
+        "amount": 5,
+        "order": 1
+      }
+    ],
+    "rewards": {
+      "xp": 50,
+      "gold": 10
+    },
+    "acceptDialogText": "Those rats are getting bold. Kill five of them.",
+    "completeDialogText": "Good work. Here is your payment."
+  }'
+```
+
+## Quest Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Display name in quest log |
+| `description` | Yes | Journal text describing the quest |
+| `category` | No | `main`, `side`, or `daily` |
+| `level` | No | Recommended level (display only) |
+| `repeatable` | No | If true, can be accepted again after completion |
+| `source` | Yes | How the quest is obtained |
+| `objectives` | Yes | Array of objectives (at least one) |
+| `rewards` | No | XP, gold, and item rewards |
+| `requiredQuestIds` | No | Quest IDs that must be completed first |
+| `requiredLevel` | No | Minimum character level |
+| `onCompleteScriptId` | No | Lua script ID to run on completion |
+| `acceptDialogText` | No | NPC speech when offering the quest |
+| `progressDialogText` | No | NPC speech while quest is in progress |
+| `completeDialogText` | No | NPC speech when turning in the quest |
+
+## Objective Types
+
+### Kill
+
+Track how many NPCs matching a template are killed:
+
+```json
+{
+  "id": "kill_rats",
+  "type": "kill",
+  "description": "Kill 5 Catacomb Rats",
+  "targetId": "ENM0001",
+  "targetName": "Catacomb Rat",
+  "amount": 5,
+  "order": 1
+}
+```
+
+`targetId` must be the **template** ID (e.g., `ENM0001`), not a spawned instance ID.
+
+### Collect
+
+Track how many items matching a template are picked up:
+
+```json
+{
+  "id": "collect_pelts",
+  "type": "collect",
+  "description": "Collect 3 Wolf Pelts",
+  "targetId": "ITM0013",
+  "targetName": "Wolf Pelt",
+  "amount": 3,
+  "order": 1
+}
+```
+
+**Note:** The tracker counts pickup events, not current inventory. Items dropped and re-picked still count.
+
+### Deliver
+
+Bring an item to a specific NPC:
+
+```json
+{
+  "id": "deliver_letter",
+  "type": "deliver",
+  "description": "Deliver the Sealed Letter to Captain Aldric",
+  "targetId": "ITM0025",
+  "targetName": "Sealed Letter",
+  "deliverToNpcId": "NPC0004",
+  "deliverToNpcName": "Captain Aldric",
+  "amount": 1,
+  "order": 1
+}
+```
+
+### Visit
+
+Enter a specific room:
+
+```json
+{
+  "id": "visit_marsh",
+  "type": "visit",
+  "description": "Travel to Gloomfen Marsh",
+  "targetId": "R0301",
+  "targetName": "Marsh Gate Trail",
+  "amount": 1,
+  "order": 1
+}
+```
+
+### Talk
+
+Talk to an NPC (optionally reaching a specific dialog node):
+
+```json
+{
+  "id": "talk_archivist",
+  "type": "talk",
+  "description": "Speak with Archivist Maren",
+  "targetId": "NPC0007",
+  "targetName": "Archivist Maren",
+  "dialogNodeId": "ruins_info",
+  "amount": 1,
+  "order": 1
+}
+```
+
+### Custom Lua
+
+Progress managed by a Lua script:
+
+```json
+{
+  "id": "solve_puzzle",
+  "type": "custom",
+  "description": "Solve the Ancient Rune Puzzle",
+  "checkScriptId": "SCR0007",
+  "amount": 1,
+  "order": 1
+}
+```
+
+In your script:
+```lua
+local charID = ctx.character.id
+if tales.quests.isActive(charID, "QST0005") then
+  tales.quests.setProgress(charID, "QST0005", "solve_puzzle", 1)
+end
+```
+
+## Quest Sources
+
+| Source | Description |
+|--------|-------------|
+| `npc` + `npcId` | Quest offered by an NPC via auto-injected dialog |
+| `item` + `itemId` | Quest granted via item pickup/use (needs Lua script) |
+| `auto` | Quest is always available in the player's quest list |
+| `script` | Quest granted via `tales.quests.grantQuest()` from any script |
+
+## NPC Dialog Integration
+
+When `source.type = "npc"`, dialog options are automatically injected when players talk
+to the source NPC:
+
+| State | Injected Option |
+|-------|----------------|
+| Available (not started) | `[Quest] {quest name}` using `acceptDialogText` |
+| Active (in progress) | `[Quest] {quest name} (in progress)` using `progressDialogText` |
+| Active (objectives complete) | `[Quest] Turn in: {quest name}` using `completeDialogText` |
+| Completed (non-repeatable) | Nothing injected |
+
+## Prerequisites
+
+```json
+"requiredQuestIds": ["quest-uuid-1", "quest-uuid-2"],
+"requiredLevel": 5
+```
+
+All listed quests must have `completed` status. Use captured UUIDs when creating chains programmatically.
+
+## Rewards
+
+```json
+"rewards": {
+  "xp": 100,
+  "gold": 25,
+  "itemTemplateIds": ["ITM0012", "ITM0015"]
+}
+```
+
+Items are created from templates and added to the player's inventory on completion.
+
+## YAML Format
+
+Quests can be authored as YAML files in `data/quests/QST####.yaml`:
+
+```yaml
+id: QST0201
+name: Sewer Sweep
+description: >
+  Clear the creatures from Oldtown's sewer system.
+category: side
+level: 2
+source:
+  type: npc
+  npcId: NPC0004
+objectives:
+  - id: kill_rats
+    type: kill
+    description: Kill 8 Sewer Rats
+    targetId: ENM0001
+    amount: 8
+    order: 1
+rewards:
+  xp: 75
+  gold: 25
+acceptDialogText: Clear out whatever is in the sewers. I'll pay.
+completeDialogText: Good work. Here's your payment.
+```
+
+## Next Steps
+
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Creating quest-giver NPCs
+- [Dialog Trees](/docs/world-building/dialog-trees) — Manual dialog authoring
+- [Lua Scripting](/docs/scripting/overview) — Custom quest objectives and completion effects

@@ -1,0 +1,259 @@
+---
+title: Your First World
+description: Build a complete zone with rooms, NPCs, items, and quests.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+# Your First World
+
+This guide walks you through building a complete zone — a small dungeon with connected rooms,
+an NPC enemy, a chest with loot, and a kill quest. By the end you'll understand the full
+content creation workflow.
+
+## Planning Your Zone
+
+Our zone: **The Rat Warrens** — a small underground rat colony beneath an abandoned farmhouse.
+
+```
+[Farm Cellar] ← starting room
+      ↓ south
+[Warren Entrance]
+      ↓ east
+[Rat Nest]          ← boss room
+      ↓ south
+[Hidden Cache]      ← reward chest
+```
+
+## Step 1: Create the Rooms
+
+<Steps>
+1. Open the Creator UI at `http://localhost:8010/admin`
+
+2. Navigate to **Rooms → New** and create each room:
+
+   **Farm Cellar**
+   ```
+   Name: Farm Cellar
+   Area: rat_warrens
+   Description: The earthen floor of an abandoned farmhouse cellar.
+                Broken crates line the walls. A smell of rot drifts up
+                from a hole in the floor — something has been digging.
+   Exits: south → [Warren Entrance ID]
+   ```
+
+   **Warren Entrance**
+   ```
+   Name: Warren Entrance
+   Area: rat_warrens
+   Description: A low tunnel gnawed through the dirt. Claw marks score
+                the walls. The smell is overwhelming.
+   Exits: north → [Farm Cellar], east → [Rat Nest]
+   ```
+
+   **Rat Nest**
+   ```
+   Name: Rat Nest
+   Area: rat_warrens
+   Description: A large chamber packed with shredded cloth, bones, and
+                the detritus of a rat colony. The Rat Queen holds court here.
+   Exits: west → [Warren Entrance], south → [Hidden Cache]
+   ```
+
+   **Hidden Cache**
+   ```
+   Name: Hidden Cache
+   Area: rat_warrens
+   Description: A small alcove, partially hidden behind a collapsed section
+                of dirt wall. Something glints in the darkness.
+   Exits: north → [Rat Nest]
+   ```
+
+3. Save all rooms and note their IDs — you'll need them for exits and spawners.
+</Steps>
+
+## Step 2: Create the Enemy NPC
+
+<Steps>
+1. Navigate to **NPCs → New**
+
+2. Create the basic rat:
+
+   ```
+   Name: Warren Rat
+   Description: A large grey rat with yellow eyes and matted fur.
+   Enemy Trait: enabled
+   ```
+
+3. Set enemy stats:
+
+   ```
+   Level: 1
+   Max HP: 12
+   Attack: 2
+   Defense: 0
+   XP Reward: 8
+   Gold Drop: 0
+   ```
+
+4. Create the boss:
+
+   ```
+   Name: Rat Queen
+   Description: A massive rat, twice the size of the others. Her grey
+                fur is streaked with white, and her eyes glow faintly red.
+   Enemy Trait: enabled
+   Level: 3
+   Max HP: 45
+   Attack: 5
+   Defense: 2
+   XP Reward: 50
+   Gold Drop: 15
+   ```
+
+5. Save both NPCs and note their IDs.
+</Steps>
+
+## Step 3: Add Spawners to Rooms
+
+<Steps>
+1. Edit the **Warren Entrance** room
+
+2. Add spawners in the Spawners section:
+   ```
+   NPC: Warren Rat
+   Max Count: 2
+   Respawn Time: 90 seconds
+   ```
+
+3. Edit the **Rat Nest** room
+
+4. Add spawners:
+   ```
+   NPC: Warren Rat      Max: 1  Respawn: 60s
+   NPC: Rat Queen       Max: 1  Respawn: 300s
+   ```
+</Steps>
+
+## Step 4: Create Items and the Chest
+
+<Steps>
+1. Navigate to **Items → New**
+
+2. Create a consumable:
+   ```
+   Name: Weak Health Potion
+   Type: consumable
+   Quality: normal
+   Stackable: yes
+   Max Stack: 10
+   Base Price: 5
+   On Use Script: [create a heal script later]
+   ```
+
+3. Create a weapon:
+   ```
+   Name: Sharp Claw
+   Type: weapon
+   Slot: main_hand
+   Quality: normal
+   Attributes:
+     damage: 4
+   Base Price: 12
+   Description: A large rat claw, still sharp enough to cut.
+   ```
+
+4. Create a chest (container item):
+   ```
+   Name: Buried Chest
+   Type: collectible
+   No Pickup: true
+   Is Container: true
+   Max Items: 5
+   ```
+
+5. Edit the **Hidden Cache** room → add the Buried Chest as a room item.
+</Steps>
+
+## Step 5: Create a Quest
+
+<Steps>
+1. Navigate to **Quests → New**
+
+2. Fill in the quest:
+   ```
+   Name: Rat Problem
+   Description: The farmhand wants the Rat Queen dealt with once and for all.
+   Category: side
+   Level: 1
+   ```
+
+3. Set the source:
+   ```
+   Source Type: npc
+   Source NPC: [a quest-giver NPC you create in the Farm Cellar]
+   ```
+
+4. Add objectives:
+   ```
+   Objective 1:
+     Type: kill
+     Target: Warren Rat (NPC ID)
+     Amount: 3
+     Description: Kill 3 Warren Rats
+     Order: 1
+
+   Objective 2:
+     Type: kill
+     Target: Rat Queen (NPC ID)
+     Amount: 1
+     Description: Kill the Rat Queen
+     Order: 2
+   ```
+
+5. Set rewards:
+   ```
+   XP: 80
+   Gold: 20
+   Item Rewards: Weak Health Potion (x2)
+   ```
+
+6. Write dialog text:
+   ```
+   Accept: Those rats have gnawed through half my grain stores. Kill three
+           of the common ones and find their queen. I'll pay well.
+   Progress: Have you dealt with them yet? I can still hear them at night.
+   Complete: That's the last of them, I hope. Here's what I promised.
+   ```
+</Steps>
+
+## Step 6: Wire It All Together
+
+Create a quest-giver NPC in the Farm Cellar:
+
+```
+Name: Worried Farmhand
+Description: A tired man in worn work clothes. He keeps glancing at the floor.
+Quest: Rat Problem (via source NPC ID)
+```
+
+## Testing Your Zone
+
+1. Start the server: `make run-server`
+2. Log in and create a character
+3. Use the admin panel to teleport your character to **Farm Cellar**
+4. Talk to the Worried Farmhand to pick up the quest
+5. Go south, kill rats, find the Rat Queen
+6. Return and turn in the quest
+
+<Aside type="tip">
+  Use the **World Map** in the Creator UI to visualize room connections as you build.
+  Rooms with coordinates show up on the visual map.
+</Aside>
+
+## Next Steps
+
+- [Creating Rooms](/docs/world-building/creating-rooms) — Detailed room configuration options
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Full NPC configuration
+- [Quest System](/docs/world-building/quests) — Complete quest authoring guide
+- [Lua Scripting](/docs/scripting/overview) — Add custom behavior

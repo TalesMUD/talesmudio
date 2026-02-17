@@ -1,0 +1,214 @@
+---
+title: Event Hooks
+description: Available game events, their triggers, and context data.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+# Event Hooks
+
+Events fire at specific moments in gameplay. You can attach Lua scripts to react to these events.
+
+<Aside type="note" title="Implementation Status">
+  **Room enter** is the primary fully-implemented event hook. The event registry and event types
+  all exist in code, but most events are not yet wired into gameplay. This page documents both
+  implemented and planned events.
+</Aside>
+
+## Implemented Events
+
+### player.enter_room ✅
+
+Fires when a player enters a room. Attach via the room's **On Enter Script** field.
+
+**Context:**
+```lua
+ctx.eventType    -- "player.enter_room"
+ctx.room         -- The room the player entered
+ctx.toRoom       -- Same as ctx.room (destination)
+ctx.character    -- The character moving in
+ctx.user         -- The user account
+```
+
+**Example:**
+```lua
+-- Atmospheric room entry script
+local charID = ctx.character.id
+
+-- 20% chance of ambient message
+if tales.utils.chance(20) then
+  tales.game.msgToCharacter(charID,
+    "A cold draft sweeps through the corridor.")
+end
+
+-- Grant a discovery quest automatically
+if not tales.quests.isActive(charID, "QST0101") and
+   not tales.quests.isCompleted(charID, "QST0101") then
+  tales.quests.grantQuest(charID, "QST0101")
+  tales.game.msgToUser(ctx.user.id, "New Quest: Explore the Meadows")
+end
+
+-- Reconcile hidden exit state
+local solved = tales.game.getFlag(charID, "ancient_lock_opened")
+if solved and not tales.game.hasRevealedExit(charID, ctx.room.id, "vault") then
+  tales.game.revealExit(ctx.room.id, "vault", charID)
+end
+```
+
+## Planned Events
+
+These event types are defined in the codebase but not yet fully wired:
+
+### Player Events
+
+| Event | Trigger |
+|-------|---------|
+| `player.leave_room` | Player leaves a room |
+| `player.join` | Player connects to game |
+| `player.quit` | Player disconnects |
+| `player.death` | Player's HP reaches 0 |
+| `player.level_up` | Player gains a level |
+
+**Expected context:**
+```lua
+ctx.character   -- The player character
+ctx.room        -- Current room
+ctx.fromRoom    -- Previous room (for move events)
+ctx.toRoom      -- Destination room (for move events)
+```
+
+### Item Events
+
+| Event | Trigger |
+|-------|---------|
+| `item.pickup` | Player picks up an item |
+| `item.drop` | Player drops an item |
+| `item.use` | Player uses an item |
+| `item.create` | Item is created from template |
+
+**Expected context:**
+```lua
+ctx.item        -- The item
+ctx.character   -- The character
+ctx.room        -- The room
+ctx.template    -- The source template (for item.create)
+```
+
+Item use scripts are partially implemented via `item.onUseScriptId`:
+```lua
+-- Consumable item use script
+local charID = ctx.character.id
+local healAmount = 15
+
+tales.characters.heal(charID, healAmount)
+tales.game.msgToCharacter(charID,
+  "You drink the potion and feel warmth spread through you. (+15 HP)")
+```
+
+### NPC Events
+
+| Event | Trigger |
+|-------|---------|
+| `npc.death` | NPC dies in combat |
+| `npc.spawn` | NPC is spawned into a room |
+| `npc.idle` | NPC idle tick (every 10s) |
+
+**Expected context:**
+```lua
+ctx.npc         -- The NPC
+ctx.room        -- The room
+ctx.killer      -- Character who killed the NPC (for npc.death)
+```
+
+### Dialog Events
+
+| Event | Trigger |
+|-------|---------|
+| `dialog.start` | Player initiates a dialog |
+| `dialog.end` | Dialog session ends |
+| `dialog.option` | Player selects a dialog option |
+
+**Expected context:**
+```lua
+ctx.character      -- Player in dialog
+ctx.npc            -- NPC in dialog
+ctx.dialogId       -- Dialog ID
+ctx.nodeId         -- Current node ID
+ctx.conversationId -- Conversation session ID
+ctx.optionSelected -- Index of selected option
+```
+
+### Quest Events
+
+| Event | Trigger |
+|-------|---------|
+| `quest.start` | Quest accepted |
+| `quest.complete` | Quest completed |
+| `quest.fail` | Quest failed (if failure conditions added) |
+| `quest.progress` | Quest objective progress changed |
+
+**Expected context:**
+```lua
+ctx.character   -- Player with the quest
+ctx.questId     -- Quest ID
+ctx.objectiveId -- Objective ID (for progress events)
+ctx.progress    -- Current progress amount
+```
+
+Quest completion scripts are implemented via `quest.onCompleteScriptId`:
+
+```lua
+-- Quest completion script
+local charID = ctx.character.id
+
+-- Reveal a new area on completion
+tales.game.revealExit(ctx.room.id, "hidden_passage", charID)
+tales.game.msgToUser(ctx.user.id,
+  "Quest Complete: A hidden passage opens to the north.")
+
+-- Give a bonus item
+tales.game.giveItem(charID, "ITM0042")
+```
+
+### Room Events
+
+| Event | Trigger |
+|-------|---------|
+| `room.action` | Player uses a room action |
+| `room.update` | Room tick (every 10 seconds) |
+
+Room actions fire the script configured on the action:
+
+```lua
+-- Room action script (lever, button, etc.)
+local charID = ctx.character.id
+
+tales.game.msgToRoom(ctx.room.id,
+  ctx.character.name .. " pulls the rusty lever with both hands.")
+
+-- Toggle state using flags
+local activated = tales.game.getFlag(charID, "lever_pulled")
+if not activated then
+  tales.game.setFlag(charID, "lever_pulled", true)
+  tales.game.revealExit(ctx.room.id, "secret_door", charID)
+  tales.game.msgToCharacter(charID,
+    "You hear stone grinding as a section of wall slides open.")
+else
+  tales.game.msgToCharacter(charID,
+    "The lever is already pulled. The door stands open.")
+end
+```
+
+## Attaching Scripts to Events
+
+| Event | How to Attach |
+|-------|--------------|
+| `player.enter_room` | Room → **On Enter Script** field |
+| `item.use` | Item → `onUseScriptId` field |
+| `quest.complete` | Quest → `onCompleteScriptId` field |
+| Room actions | Room → Actions → `scriptId` field |
+
+## Next Steps
+
+- [API Reference](/docs/scripting/api-reference) — Full `tales.*` function list
+- [Examples](/docs/scripting/examples) — Complete working scripts

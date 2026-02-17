@@ -1,0 +1,76 @@
+---
+title: Auth0 Setup
+description: Configure Auth0 for production authentication in TalesMUD.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+# Auth0 Setup
+
+TalesMUD uses Auth0 for production authentication. Auth0 handles user registration, login,
+and JWT issuance. TalesMUD validates JWTs against the Auth0 JWKS endpoint.
+
+<Aside type="note">
+  Auth0 is optional. For private or development servers, set `AUTH_ENABLED=false` and use
+  the simple admin username/password.
+</Aside>
+
+## Prerequisites
+
+- An [Auth0](https://auth0.com) account (free tier works for small deployments)
+
+## Setup Steps
+
+<Steps>
+1. **Create an Auth0 Application**
+   - Go to Auth0 Dashboard → Applications → Create Application
+   - Type: **Single Page Application**
+   - Name: "TalesMUD" (or your world's name)
+   - Note the **Domain** and **Client ID**
+
+2. **Create an API**
+   - Go to Auth0 Dashboard → APIs → Create API
+   - Name: "TalesMUD API"
+   - Identifier: `https://yourdomain.com/api` (this becomes `AUTH0_AUDIENCE`)
+   - Signing Algorithm: RS256
+
+3. **Configure Allowed Origins**
+   - In your Auth0 Application settings:
+   - Allowed Callback URLs: `https://yourdomain.com`
+   - Allowed Logout URLs: `https://yourdomain.com`
+   - Allowed Web Origins: `https://yourdomain.com`
+
+4. **Set Environment Variables**
+
+   ```bash
+   AUTH_ENABLED=true
+   AUTH0_AUDIENCE=https://yourdomain.com/api
+   AUTH0_DOMAIN=https://your-tenant.auth0.com/
+   AUTH0_WK_JWKS=https://your-tenant.auth0.com/.well-known/jwks.json
+   ```
+
+5. **Restart the server** — Auth0 validation will now be active
+</Steps>
+
+## Role Assignment
+
+After enabling Auth0, log in with your Admin account and:
+1. Go to `https://yourdomain.com/admin`
+2. Navigate to **Users**
+3. Promote your admin account to **MUD Admin** role
+4. Promote content creators to **MUD Creator** role
+
+Players can self-register via Auth0 and automatically get the **Player** role.
+
+## JWT Validation
+
+TalesMUD validates JWTs by:
+1. Fetching the JWKS (public keys) from `AUTH0_WK_JWKS`
+2. Verifying the token signature using the matching key
+3. Checking the `aud` claim matches `AUTH0_AUDIENCE`
+4. Checking the `iss` claim matches `AUTH0_DOMAIN`
+5. Checking the token hasn't expired
+
+## Next Steps
+
+- [Production Checklist](/docs/deployment/production-checklist) — Pre-launch verification

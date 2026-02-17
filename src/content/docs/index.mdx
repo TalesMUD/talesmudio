@@ -1,0 +1,63 @@
+---
+title: TalesMUD Documentation
+description: Complete documentation for the TalesMUD open-source MUD framework.
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+# TalesMUD Documentation
+
+**TalesMUD** is an open-source framework for building browser-based Multi-User Dungeons.
+Go backend, Svelte frontend, Lua scripting, and a complete RPG system — ready to build on.
+
+<LinkCard
+  title="Introduction →"
+  description="What TalesMUD is and why it exists."
+  href="/docs/getting-started/introduction"
+/>
+
+## Quick Navigation
+
+<CardGrid>
+  <Card title="Getting Started" icon="rocket">
+    [Introduction](/docs/getting-started/introduction) ·
+    [Installation](/docs/getting-started/installation) ·
+    [Quick Start](/docs/getting-started/quick-start) ·
+    [Configuration](/docs/getting-started/configuration)
+  </Card>
+  <Card title="Core Concepts" icon="open-book">
+    [Architecture](/docs/core-concepts/architecture) ·
+    [Game Loop](/docs/core-concepts/game-loop) ·
+    [Characters](/docs/core-concepts/characters) ·
+    [Data Storage](/docs/core-concepts/data-storage)
+  </Card>
+  <Card title="World Building" icon="pencil">
+    [Creating Rooms](/docs/world-building/creating-rooms) ·
+    [NPCs & Spawners](/docs/world-building/npcs-and-spawners) ·
+    [Quests](/docs/world-building/quests) ·
+    [Content Editor](/docs/world-building/content-editor)
+  </Card>
+  <Card title="Scripting" icon="setting">
+    [Lua Overview](/docs/scripting/overview) ·
+    [API Reference](/docs/scripting/api-reference) ·
+    [Event Hooks](/docs/scripting/event-hooks) ·
+    [Examples](/docs/scripting/examples)
+  </Card>
+  <Card title="Game Systems" icon="star">
+    [Combat](/docs/game-systems/combat) ·
+    [Skills & Spells](/docs/game-systems/skills-and-spells) ·
+    [Character Progression](/docs/game-systems/character-progression) ·
+    [Loot Tables](/docs/game-systems/loot-tables)
+  </Card>
+  <Card title="Deployment" icon="laptop">
+    [Docker](/docs/deployment/docker) ·
+    [Nginx](/docs/deployment/nginx) ·
+    [Auth0](/docs/deployment/auth0-setup) ·
+    [Production Checklist](/docs/deployment/production-checklist)
+  </Card>
+</CardGrid>
+
+## The Live Demo
+
+[Veilspan](https://veilspan.com) is the official demo world — a fantasy adventure built
+entirely on TalesMUD. Play it to see what the framework can do.

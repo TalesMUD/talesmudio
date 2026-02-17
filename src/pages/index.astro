@@ -1,0 +1,364 @@
+---
+import Landing from '../layouts/Landing.astro';
+import Nav from '../components/Nav.astro';
+import TerminalDemo from '../components/TerminalDemo.astro';
+import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Landing>
+  <Nav />
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <canvas id="particles-canvas" class="hero-particles" aria-hidden="true"></canvas>
+
+    <div class="hero-content">
+      <span class="hero-eyebrow">Open Source · Go + Svelte · Browser Native</span>
+      <h1 class="hero-title">
+        Build Your<br /><span class="accent">Text World</span>
+      </h1>
+      <p class="hero-subtitle">
+        An open-source framework for building browser-based Multi-User Dungeons.
+        Go backend. Svelte frontend. Zero telnet required.
+      </p>
+      <div class="hero-ctas">
+        <a href="https://veilspan.com" class="btn btn-primary" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Play the Demo
+        </a>
+        <a href="/docs/getting-started/introduction" class="btn btn-secondary">
+          Get Started →
+        </a>
+      </div>
+
+      <TerminalDemo />
+    </div>
+  </section>
+
+  <!-- WHAT IS TALESMUD -->
+  <div class="section-divider"></div>
+  <section class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">The Framework</span>
+      <h2 class="section-title">Everything you need to build a MUD</h2>
+      <p class="section-desc">TalesMUD is a complete platform — not just an engine. Build, host, and play browser-based multiplayer RPGs without writing a line of boilerplate.</p>
+    </div>
+
+    <div class="trio-grid">
+      <div class="trio-card">
+        <div class="trio-card-icon">⚡</div>
+        <h3 class="trio-card-title">Modern Stack</h3>
+        <p class="trio-card-desc">Go 1.24 backend with Gin, Svelte 4 frontend with TailwindCSS, SQLite storage, WebSocket real-time communication. No telnet, no legacy protocols — just the browser.</p>
+      </div>
+      <div class="trio-card">
+        <div class="trio-card-icon">🏰</div>
+        <h3 class="trio-card-title">Complete RPG Framework</h3>
+        <p class="trio-card-desc">Combat, character progression, quests, NPCs, dialog trees, items, merchants, and Lua scripting — all built-in and ready to customize for your world.</p>
+      </div>
+      <div class="trio-card">
+        <div class="trio-card-icon">🌍</div>
+        <h3 class="trio-card-title">Genre-Agnostic</h3>
+        <p class="trio-card-desc">Fantasy, sci-fi, horror, steampunk — TalesMUD's systems are setting-neutral. Build any world you can imagine with flexible data-driven content authoring.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <div class="section-divider"></div>
+  <section class="arch-section">
+    <div class="arch-container">
+      <div class="section-header">
+        <span class="section-eyebrow">Architecture</span>
+        <h2 class="section-title">Layered, clean, extensible</h2>
+        <p class="section-desc">
+          A well-defined layered architecture separates concerns cleanly. Real-time WebSocket for gameplay,
+          REST API for content management, and a SQLite repository that needs zero external dependencies.
+        </p>
+      </div>
+      <ArchitectureDiagram />
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div class="section-divider"></div>
+  <section class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Features</span>
+      <h2 class="section-title">Everything in the box</h2>
+      <p class="section-desc">No plugin hunting. No gluing systems together. TalesMUD ships with all core RPG systems production-ready.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚔️</span>
+        <h3 class="feature-title">Turn-Based Combat</h3>
+        <p class="feature-desc">Initiative rolls (1d20 + DEX), auto-attack, 29+ class skills and spells, status effects, defensive stance, flee mechanics, and XP/loot distribution.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗺️</span>
+        <h3 class="feature-title">World Building</h3>
+        <p class="feature-desc">Coordinate-based room system, zone maps, exits with directional navigation, room actions, background images, and a web-based visual room editor.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📜</span>
+        <h3 class="feature-title">Quest System</h3>
+        <p class="feature-desc">Data-driven quests with Kill, Collect, Deliver, Visit, Talk, and custom Lua objectives. Automatic progress tracking, prerequisites, chains, and NPC dialog integration.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎭</span>
+        <h3 class="feature-title">NPCs & Dialogs</h3>
+        <p class="feature-desc">Branching dialog trees with variable substitution and conditional options. Merchant system with restock and pricing. Spawners with configurable respawn. Enemy AI states.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔧</span>
+        <h3 class="feature-title">Lua Scripting</h3>
+        <p class="feature-desc">Extend gameplay with custom mechanics, puzzles, and events. 8 API modules covering items, rooms, characters, NPCs, dialogs, quests, game messaging, and utilities.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎨</span>
+        <h3 class="feature-title">Content Editor</h3>
+        <p class="feature-desc">Web-based CRUD for all game entities — rooms, NPCs, items, quests, dialogs, skills, and scripts. Filterable tables, master-detail layout, live Lua script editor.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <div class="section-divider"></div>
+  <section class="section-full tech-section">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-eyebrow">Tech Stack</span>
+        <h2 class="section-title">Built with the right tools</h2>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #00add8"></span>
+          Go 1.24
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #ff3e00"></span>
+          Svelte 4
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #38bdf8"></span>
+          TailwindCSS
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #003b57"></span>
+          SQLite
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #2496ed"></span>
+          Docker
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #009900"></span>
+          Lua 5.1
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #333"></span>
+          xterm.js
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #eb5424"></span>
+          Auth0
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #f5a623"></span>
+          Gin HTTP
+        </div>
+        <div class="tech-badge">
+          <span class="tech-badge-dot" style="background: #a855f7"></span>
+          WebSocket
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <div class="section-divider"></div>
+  <section class="section quickstart-section">
+    <div class="section-header">
+      <span class="section-eyebrow">Quick Start</span>
+      <h2 class="section-title">Up and running in minutes</h2>
+      <p class="section-desc">Clone, build, run. No external dependencies required beyond Go and Node.</p>
+    </div>
+
+    <div class="quickstart-terminal">
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-dot terminal-dot-red"></span>
+          <span class="terminal-dot terminal-dot-yellow"></span>
+          <span class="terminal-dot terminal-dot-green"></span>
+          <span class="terminal-title">bash</span>
+        </div>
+        <div class="terminal-body" style="line-height: 2;">
+          <div>
+            <span class="terminal-comment"># Clone the repository</span>
+          </div>
+          <div>
+            <span style="color: var(--color-teal)">git</span>
+            <span style="color: var(--color-text)"> clone https://github.com/TalesMUD/talesmud.git</span>
+          </div>
+          <div>
+            <span style="color: var(--color-teal)">cd</span>
+            <span style="color: var(--color-text)"> talesmud</span>
+          </div>
+          <br />
+          <div>
+            <span class="terminal-comment"># Build everything (backend + frontend)</span>
+          </div>
+          <div>
+            <span style="color: var(--color-teal)">make</span>
+            <span style="color: var(--color-text)"> build</span>
+          </div>
+          <br />
+          <div>
+            <span class="terminal-comment"># Start the server</span>
+          </div>
+          <div>
+            <span style="color: var(--color-teal)">make</span>
+            <span style="color: var(--color-text)"> run-server</span>
+          </div>
+          <br />
+          <div>
+            <span style="color: var(--color-emerald)">→</span>
+            <span style="color: var(--color-text-muted)"> Open </span>
+            <span style="color: var(--color-amber)">http://localhost:8010</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 1.5rem;">
+        <a href="/docs/getting-started/installation" class="btn btn-secondary" style="display: inline-flex;">
+          Full Installation Guide →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE DEMO CALLOUT -->
+  <div class="section-divider"></div>
+  <section class="section demo-section">
+    <div class="demo-card">
+      <span class="demo-world-name">Official Demo World</span>
+      <h2 class="demo-card-title">Play Veilspan</h2>
+      <p class="demo-card-desc">
+        Veilspan is a fantasy adventure set in the world of Aethermoor — built entirely on TalesMUD.
+        Explore the Catacombs, uncover the mystery of the Architects, and experience everything
+        the framework has to offer.
+      </p>
+      <a href="https://veilspan.com" class="btn btn-primary" target="_blank" rel="noopener" style="display: inline-flex;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Enter Veilspan
+      </a>
+    </div>
+  </section>
+
+  <!-- COMMUNITY -->
+  <div class="section-divider"></div>
+  <section class="section">
+    <div class="section-header">
+      <span class="section-eyebrow">Community</span>
+      <h2 class="section-title">Join the builders</h2>
+      <p class="section-desc">TalesMUD is open source and built by a community of developers who love text-based games. Come build with us.</p>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="https://github.com/TalesMUD/talesmud" target="_blank" rel="noopener" style="display: inline-block; margin-bottom: 1rem;">
+        <img src="https://img.shields.io/github/stars/TalesMUD/talesmud?style=social" alt="GitHub Stars" loading="lazy" />
+      </a>
+      <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0;">
+        Built by <a href="https://github.com/atla" style="color: var(--color-teal);" target="_blank" rel="noopener">atla</a> and contributors
+      </p>
+    </div>
+
+    <div class="community-grid">
+      <a href="https://github.com/TalesMUD/talesmud/discussions" class="community-card" target="_blank" rel="noopener">
+        <span class="community-card-icon">💬</span>
+        <h3 class="community-card-title">GitHub Discussions</h3>
+        <p class="community-card-desc">Ask questions, share ideas, and discuss TalesMUD development with the community.</p>
+      </a>
+      <a href="https://github.com/TalesMUD/talesmud/issues" class="community-card" target="_blank" rel="noopener">
+        <span class="community-card-icon">🐛</span>
+        <h3 class="community-card-title">Issue Tracker</h3>
+        <p class="community-card-desc">Found a bug or have a feature request? Open an issue on GitHub to get it tracked.</p>
+      </a>
+      <a href="/docs/contributing/development-setup" class="community-card">
+        <span class="community-card-icon">🤝</span>
+        <h3 class="community-card-title">Contribute</h3>
+        <p class="community-card-desc">PRs welcome. Read the contributing guide to learn how to set up the development environment.</p>
+      </a>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+  <Footer />
+</Landing>
+
+<script>
+  // Particle effect
+  const canvas = document.getElementById('particles-canvas') as HTMLCanvasElement;
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      let particles: Array<{
+        x: number; y: number; size: number;
+        speedX: number; speedY: number;
+        opacity: number; color: string;
+      }> = [];
+
+      const resize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+
+      const createParticle = () => ({
+        x: Math.random() * canvas.width,
+        y: canvas.height + 10,
+        size: Math.random() * 2 + 0.5,
+        speedX: (Math.random() - 0.5) * 0.3,
+        speedY: -(Math.random() * 0.4 + 0.2),
+        opacity: Math.random() * 0.4 + 0.1,
+        color: Math.random() > 0.6 ? '#f5a623' : '#38bdf8',
+      });
+
+      const init = () => {
+        resize();
+        for (let i = 0; i < 40; i++) {
+          const p = createParticle();
+          p.y = Math.random() * canvas.height;
+          particles.push(p);
+        }
+      };
+
+      const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, i) => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+          p.opacity -= 0.0003;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (p.y < -10 || p.opacity <= 0) {
+            particles[i] = createParticle();
+          }
+        });
+        requestAnimationFrame(animate);
+      };
+
+      window.addEventListener('resize', resize);
+      init();
+      animate();
+    }
+  }
+</script>

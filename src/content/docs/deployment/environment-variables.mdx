@@ -1,0 +1,38 @@
+---
+title: Environment Variables
+description: Complete environment variable reference for TalesMUD.
+---
+
+# Environment Variables
+
+See the [Configuration](/docs/getting-started/configuration) page for the full environment variable reference.
+
+This page covers production-specific considerations.
+
+## Production Settings
+
+```bash
+# Set release mode to disable debug output and enable optimizations
+GIN_MODE=release
+
+# Reduce log verbosity in production
+LOG_LEVEL=info
+
+# Use a persistent, backed-up database path
+SQLITE_PATH=/data/talesmud.db
+
+# Enable Auth0 for real authentication
+AUTH_ENABLED=true
+AUTH0_AUDIENCE=https://yourdomain.com/api
+AUTH0_DOMAIN=https://your-tenant.auth0.com/
+AUTH0_WK_JWKS=https://your-tenant.auth0.com/.well-known/jwks.json
+```
+
+## Security Checklist
+
+- [ ] `GIN_MODE=release` — prevents debug stack traces in responses
+- [ ] `ADMIN_PASSWORD` is a strong unique password (if not using Auth0)
+- [ ] `AUTH_ENABLED=true` with Auth0 for public deployments
+- [ ] Database file is outside the Docker container (volume mounted)
+- [ ] Database file has restricted permissions (`chmod 600`)
+- [ ] HTTPS enabled via Nginx + Let's Encrypt

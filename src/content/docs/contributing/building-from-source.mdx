@@ -1,0 +1,65 @@
+---
+title: Build from Source
+description: How to build the TalesMUD binary and frontend assets.
+---
+
+# Build from Source
+
+## Makefile Targets
+
+```bash
+make build              # Build everything (frontend + backend)
+make build-frontend     # Build admin UI (Vite → dist)
+make build-mud-client   # Build game client (Vite → dist)
+make build-backend      # Compile Go binary
+make run-server         # Run the Go server
+make run-frontend       # Start admin UI Vite dev server
+make run-mud-client     # Start game client dev server
+make run                # Run all three concurrently
+```
+
+## Build Process
+
+### 1. Build the Admin Frontend
+
+```bash
+cd public/app
+npm install
+npm run build
+cd ../..
+```
+
+Output: `public/app/dist/` — compiled Svelte + Vite assets
+
+### 2. Build the Game Client
+
+```bash
+cd public/mud-client
+npm install
+npm run build
+cd ../..
+```
+
+Output: `public/mud-client/dist/` — compiled Svelte + xterm.js assets
+
+### 3. Build the Go Binary
+
+```bash
+go build -o talesmud ./cmd/tales/
+```
+
+The Go binary embeds both frontend `dist/` directories using Go's `//go:embed` directive.
+This means the compiled binary is self-contained — no separate static files needed.
+
+## Docker Build
+
+```bash
+docker build -t talesmud:latest .
+```
+
+The Dockerfile runs all three build steps sequentially.
+
+## Next Steps
+
+- [Development Setup](/docs/contributing/development-setup) — Dev environment
+- [Pull Request Guidelines](/docs/contributing/pull-requests) — Submit your work

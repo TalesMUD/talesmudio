@@ -1,0 +1,142 @@
+---
+title: Rooms & Zones
+description: The room system — structure, exits, coordinates, zones, and actions.
+---
+
+# Rooms & Zones
+
+Rooms are the fundamental spatial unit in TalesMUD. Everything in the game world exists
+in a room: players, NPCs, items. Zones are logical groupings of rooms.
+
+## Room Structure
+
+A room contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Display name shown to players |
+| `description` | string | Prose description of the room |
+| `area` | string | Zone/area grouping (e.g., `catacombs`, `oldtown`) |
+| `exits` | map | Directional exits to other rooms |
+| `actions` | array | Interactive objects and triggers |
+| `spawners` | array | NPC spawn configurations |
+| `items` | array | Items present in the room |
+| `coordinates` | object | X, Y, Z for world map visualization |
+| `onEnterScriptID` | string | Lua script ID to run when a player enters |
+| `background` | string | Background image name for the game client |
+
+## Exits
+
+Exits are directional links between rooms. Standard directions:
+- `north`, `south`, `east`, `west` (aliases: `n`, `s`, `e`, `w`)
+- `up`, `down`
+- Custom exits with any name
+
+Each exit specifies:
+```json
+{
+  "direction": "north",
+  "targetRoomId": "R0102",
+  "hidden": false,
+  "description": "A narrow passage leads north."
+}
+```
+
+Hidden exits are not shown in the room description until revealed via script:
+
+```lua
+-- Reveal a hidden exit for a specific character
+tales.game.revealExit(roomID, "north", characterID)
+
+-- Check if revealed
+local revealed = tales.game.hasRevealedExit(characterID, roomID, "north")
+```
+
+## Room Actions
+
+Actions are named interactive triggers in a room. Players interact with them via the room action
+command. Actions can have Lua scripts:
+
+```json
+{
+  "name": "lever",
+  "description": "An iron lever set into the wall.",
+  "scriptId": "SCR0012"
+}
+```
+
+The script fires when a player uses the action. Context includes the acting character and room.
+
+## Zones / Areas
+
+The `area` field groups rooms into logical zones. Areas are used for:
+- World map organization
+- Exploration XP bonuses (first time discovering an area)
+- Script conditions (`if ctx.room.area == "dungeon" then ...`)
+- Enemy and NPC balance by zone
+
+## Coordinates
+
+Rooms can have `x`, `y`, `z` coordinates for world map visualization in the Creator UI.
+The coordinate system is open — assign any values that make geographic sense for your world.
+
+```json
+{
+  "coordinates": { "x": 3, "y": 7, "z": 0 }
+}
+```
+
+## Spawners
+
+Room spawners automatically create NPC instances on a schedule:
+
+```json
+{
+  "npcTemplateId": "ENM0001",
+  "maxCount": 3,
+  "respawnTime": 60,
+  "currentCount": 1
+}
+```
+
+The spawner tick runs every 5 seconds. If `currentCount < maxCount` and the respawn timer has
+elapsed, a new NPC instance is created.
+
+## Background Images
+
+Each room can have a background image displayed in the game client (above the terminal). Images
+are stored in `BACKGROUNDS_PATH` (default: `./uploads/backgrounds`). Set the `background` field
+to the image filename.
+
+## Content Source Files
+
+World content is authored as Markdown files in the `zones/` directory and exported to YAML in `data/`:
+
+```
+zones/
+└── Z03_gloomfen_marsh/
+    └── rooms/
+        └── R0301_marsh_edge.md
+
+data/
+└── rooms/
+    └── R0301.yaml
+```
+
+**Never author content directly in `data/`** — always use `zones/` and the export tooling.
+
+## REST API
+
+```
+GET    /api/rooms          — List all rooms
+GET    /api/rooms/:id      — Get room by ID
+POST   /api/rooms          — Create room
+PUT    /api/rooms/:id      — Update room
+DELETE /api/rooms/:id      — Delete room
+```
+
+## Next Steps
+
+- [Creating Rooms](/docs/world-building/creating-rooms) — Step-by-step room creation
+- [Building Zones](/docs/world-building/building-zones) — Organizing rooms into zones
+- [NPCs & Spawners](/docs/world-building/npcs-and-spawners) — Adding life to rooms
