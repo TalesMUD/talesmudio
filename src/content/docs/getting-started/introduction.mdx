@@ -80,6 +80,34 @@ Play it to see what's possible before you start building.
 | Auth (optional) | Auth0 JWT, JWKS validation |
 | Infrastructure | Docker, Docker Compose, GitHub Actions |
 
+## Project History
+
+TalesMUD didn't appear fully-formed. It has a lineage.
+
+**2018 — LOTD (Lair of the Dragon)**
+The first attempt. A MUD server with a genuinely interesting gimmick: TCP/telnet players
+and WebSocket players coexisting in the same game world, handled by separate network
+layers that both fed into a shared game instance. Too complex for a first version, but
+the WebSocket and game server architecture carried forward into TalesMUD.
+
+**2019–2020 — dungeonsrv**
+A parallel experiment: generic REST services for browser RPGs, with server-side scripting
+at item instantiation time. It also produced a procedural dungeon generator — still a
+planned feature for TalesMUD's content pipeline. The scripting concept survived and
+became TalesMUD's Lua scripting layer.
+
+**2020 — Tales of a Pirate**
+The first live MUD built on the rewritten codebase, running at `talesofapirate.com`.
+A sandbox for validating the stack and design decisions. JavaScript scripting (via `otto`)
+was planned here — later replaced with Lua, a much better fit for embedded game scripting.
+
+**2024–2025 — TalesMUD**
+The framework as it exists today: full RPG systems, Lua scripting, content editor,
+Veilspan as the live demo, and open-source under MIT.
+
+For the full story — why Go, why Svelte, BBS door games, MUD history, and all the wrong
+turns — read [Notes on Building TalesMUD](/blog/introducing-talesmud).
+
 ## Next Steps
 
 <CardGrid>

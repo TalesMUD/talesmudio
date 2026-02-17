@@ -5,8 +5,8 @@ import Footer from '../../components/Footer.astro';
 ---
 
 <Landing
-  title="Introducing TalesMUD — TalesMUD Blog"
-  description="What TalesMUD is and why it exists. Bringing MUDs into the modern web era."
+  title="Notes on Building TalesMUD — TalesMUD Blog"
+  description="How TalesMUD went from a 2018 experiment to an open-source MUD framework. Personal history, wrong turns, Go, Svelte, and why MUDs still matter."
 >
   <Nav />
 
@@ -14,118 +14,290 @@ import Footer from '../../components/Footer.astro';
     <article class="blog-article">
       <div class="blog-article-header">
         <div class="blog-article-meta">
-          <span class="blog-post-date">December 1, 2024</span>
+          <span class="blog-post-date">February 2025</span>
           <span class="blog-post-sep">·</span>
-          <span class="blog-post-readtime">8 min read</span>
+          <span class="blog-post-readtime">15 min read</span>
         </div>
         <h1 class="blog-article-title">
-          Introducing TalesMUD — A Modern Framework for Browser-Based MUDs
+          Notes on Building TalesMUD
         </h1>
         <p class="blog-article-subtitle">
-          Bringing the classic Multi-User Dungeon format into the modern web era.
+          How a hover-racing game server from 2003, a failed blockchain detour, and an obsession
+          with old BBS door games led to an open-source MUD framework in 2025.
         </p>
         <div class="blog-post-tags">
-          <span class="blog-tag">announcement</span>
-          <span class="blog-tag">framework</span>
+          <span class="blog-tag">origin story</span>
+          <span class="blog-tag">golang</span>
           <span class="blog-tag">open-source</span>
+          <span class="blog-tag">gamedev</span>
         </div>
       </div>
 
       <div class="blog-article-body">
+
         <p>
-          If you grew up in the late 80s or 90s, you might remember MUDs — Multi-User Dungeons.
-          Text-based multiplayer RPGs where you'd explore procedurally described rooms, fight monsters
-          with commands like <code>attack goblin</code>, and chat with other players over a 28.8k modem
-          through a bare telnet connection.
-        </p>
-        <p>
-          MUDs pioneered online multiplayer gaming. They had quest systems, character classes, guilds,
-          crafting, PvP, and open worlds — years before graphical MMOs existed. And yet today, most
-          MUD frameworks are legacy codebases from the 90s, requiring telnet clients, running on
-          arcane server software, and completely inaccessible to modern players.
+          I have been working on side projects for about 20 years. It started when I picked up
+          programming at 16 — games in C/C++ with SDL and OpenGL, then Java with JOGL, then Unity
+          when that finally existed and I wished I'd had it at 16. Through university, through full-time
+          jobs, the side projects never stopped. Android apps early enough to catch the Google Play
+          store when it was still called the Android Market. A lot of things that shipped, a lot more
+          that didn't.
         </p>
 
-        <h2>Why TalesMUD?</h2>
         <p>
-          I built TalesMUD because I wanted to play a MUD in my browser. No telnet. No special client.
-          Just open a tab, connect via WebSocket, and be somewhere else.
-        </p>
-        <p>
-          But more than that, I wanted a framework where I could build a world quickly — with real
-          tooling, a content editor, a quest system that actually works, and code I could understand.
-          Not a pile of 30-year-old C that requires patches just to compile.
+          Side projects are how I stay sharp. They're where I learn new technologies without the
+          pressure of a production deadline, where I can be genuinely creative with what I already
+          know. And every few years, one of them turns into something worth talking about.
         </p>
 
-        <h2>What TalesMUD Is</h2>
         <p>
-          TalesMUD is a complete framework for building browser-based MUDs. It ships with:
+          TalesMUD is one of those.
         </p>
+
+        <h2>Where This Actually Started</h2>
+
+        <p>
+          The real origin is a game called <strong>NTRS</strong> — Noch Tolleres RennSpiel, don't ask —
+          an OpenGL hover/pod-racing arcade multiplayer I built years ago. It came with a minimalistic
+          C++ server using unix sockets. Basic, but it worked: multiple clients, real-time state,
+          network code I wrote from scratch because that's what you did.
+        </p>
+
+        <p>
+          I never really built anything like that again, and I always missed it. The feeling of
+          something you made running live with other people connected to it.
+        </p>
+
+        <p>
+          I have always been fascinated by RPGs and MMORPGs, even if I was never the person who
+          logged 4000 hours into one. And I knew the history — that the big graphical MMOs didn't
+          appear from nowhere. AberMUD, TinyMUD, DikuMUD. Those came first. They invented the
+          mechanics that EverQuest and WoW refined decades later. Dark Age of Camelot was built by
+          Mark Jacobs, who before that built Dragon's Gate, and before that GemStone — all text-based.
+          The genre tree goes all the way down to a terminal prompt.
+        </p>
+
+        <p>
+          And then there were DOOR games. If you remember BBS systems, you remember them. The most
+          famous was <strong>LORD</strong> — Legend of the Red Dragon. You logged into the BBS, selected LORD,
+          and had a fixed number of actions for the day: fight monsters in the forest, visit the
+          inn, maybe challenge another player. A global leaderboard. Seasonal resets. Player
+          marriages. PvP. And eventually, if you were the strongest, you'd face the dragon.
+        </p>
+
+        <p>
+          In hindsight, LORD basically invented the loop that makes mobile games addictive today —
+          daily limited actions, social pressure, a progression ceiling that reset periodically —
+          just forty years earlier on hardware you wouldn't believe.
+        </p>
+
+        <p>
+          Both MUDs and DOOR games have been living in the back of my head for a long time as the
+          kind of thing I wanted to build. A game that's fundamentally text-driven, narrative-rich,
+          multiplayer by default, and playable without installing anything. Something with the depth
+          of a real RPG and the accessibility of a browser tab.
+        </p>
+
+        <h2>LOTD: The First Attempt (2018)</h2>
+
+        <p>
+          In 2018 I started <strong>LOTD</strong> — Lair of the Dragon. It was my first real attempt
+          at a MUD server, and it had an idea I still think was genuinely interesting: it supported
+          both TCP (telnet) clients and WebSocket clients simultaneously. Both types of players
+          connected to the same game world. TCP handlers and WebSocket handlers both fed into the
+          same game instance, which processed commands and broadcast results back out through
+          whichever transport each client had connected on.
+        </p>
+
+        <p>
+          A cool concept. Also much more complexity than I needed for a first version. LOTD taught
+          me what the problem actually was, and I took the WebSocket and game server components
+          forward when I eventually rewrote it.
+        </p>
+
+        <p>
+          Around the same time — and into 2019 and 2020 — I was working on something called
+          <strong>dungeonsrv</strong>. It was aimed at providing generic REST services for mobile and
+          browser RPG games, with server-side scripting support so you could, for example, run a
+          script at item instantiation time to change the item's description based on the time of
+          day, or the moon calendar. That idea never went away. A version of it eventually made it
+          into TalesMUD's Lua scripting layer.
+        </p>
+
+        <p>
+          dungeonsrv also had a procedural dungeon generator — still pretty basic, but it produced
+          interesting results and it's something I still want to incorporate properly: either as a
+          source of genuinely random generated rooms, or as a tool in the content editor for
+          bootstrapping zone layouts.
+        </p>
+
+        <p>
+          The first live version of TalesMUD shipped under a different name: <strong>Tales of a Pirate</strong>,
+          running at <code>talesofapirate.com</code>. It was a sandbox for testing the ideas and
+          the stack. And it's where the real decisions about what this project was going to be got made.
+        </p>
+
+        <h2>On Choosing Go</h2>
+
+        <p>
+          My first look at Go didn't impress me. The syntax looked plain, almost boring. The
+          ecosystem seemed small. I moved on.
+        </p>
+
+        <p>
+          What brought me back, of all things, was the blockchain hype of 2017-2018. A lot of
+          blockchain and crypto infrastructure was written in Go — not the chains themselves
+          (usually C++), but the tooling, the SDKs, the connectors. Go was everywhere in that
+          space, so I started reading. Then in early 2018 I found the Twirp post — Twitch's RPC
+          framework for Go — and that was it. I finally sat down and wrote something real with it.
+        </p>
+
+        <p>
+          What initially put me off — the plain syntax, the lack of magic — turned into exactly
+          what I liked. Go is simple in the best way. The standard library handles most of what
+          other languages need frameworks for. You write clear, direct code, and it runs fast and
+          reliably.
+        </p>
+
+        <p>
+          I was missing generics for a long time (they've since landed). I also looked at Rust,
+          read through some of the API docs and examples. The honest reason I didn't switch: my
+          investment in Go already outweighed the benefits of starting over. That's a pragmatic
+          reason, not a technical one, but I think it's the right one.
+        </p>
+
+        <p>
+          More than anything: I wanted to build a bigger project in Go. Not a to-do app, not a
+          hello world. Something with real complexity — network code, embedded scripting, a game
+          loop, concurrency, sessions — that would force me to actually understand the language.
+          That's what TalesMUD gave me.
+        </p>
+
+        <h2>On Choosing Svelte</h2>
+
+        <p>
+          The browser frontend needed to run a terminal. I'd come across <strong>xterm.js</strong>
+          — the same terminal emulator that powers VS Code's integrated terminal — and that was
+          the obvious choice for rendering the game client. Real terminal behaviour, real escape
+          sequence support, and open source.
+        </p>
+
+        <p>
+          For the framework around it, my React and Vue experience was shallow — I'd done small
+          projects with both but never went deep. I'd been reading about Svelte and liked what
+          I saw: a reactive component framework that compiles down to minimal JavaScript, no
+          virtual DOM, the store concept built in. It reminded me of a DHH post I'd read about
+          Basecamp's new mail app — their explicit choice to rely on as few third-party JavaScript
+          packages as possible.
+        </p>
+
+        <p>
+          That philosophy appealed to me. Pick something minimal and understand it fully, rather
+          than pulling in a dependency graph you can't reason about. Svelte was the right call.
+        </p>
+
+        <h2>What the Project Actually Is</h2>
+
+        <p>
+          After several iterations, here's what TalesMUD became:
+        </p>
+
         <ul>
-          <li><strong>A Go backend</strong> — fast, single-binary, embedded Svelte frontend, SQLite storage</li>
-          <li><strong>A Svelte game client</strong> — xterm.js terminal rendering, minimap, tab widgets</li>
-          <li><strong>A web content editor</strong> — CRUD for rooms, NPCs, items, quests, scripts</li>
-          <li><strong>Turn-based combat</strong> — initiative, skills, spells, status effects, loot</li>
-          <li><strong>A quest system</strong> — kill, collect, deliver, visit, talk, and custom Lua objectives</li>
-          <li><strong>Lua scripting</strong> — extend anything with scripts that have access to 8 game API modules</li>
-          <li><strong>Auth0 integration</strong> — optional authentication with role-based access (player, creator, admin)</li>
+          <li><strong>A Go backend</strong> — single binary, embeds the Svelte frontend, WebSocket game server, HTTP REST API, SQLite persistence via <code>modernc.org/sqlite</code></li>
+          <li><strong>A Svelte game client</strong> — xterm.js terminal rendering, minimap, tab widgets, quest log, inventory panels</li>
+          <li><strong>A web content editor</strong> — browser-based CRUD for rooms, NPCs, items, quests, dialog trees, loot tables, and scripts</li>
+          <li><strong>Turn-based combat</strong> — initiative rolls, 29 skills across 6 classes, status effects, XP and loot distribution</li>
+          <li><strong>A full quest system</strong> — Kill, Collect, Deliver, Visit, Talk, and Custom Lua objective types</li>
+          <li><strong>Lua scripting</strong> — I originally planned JavaScript via <code>otto</code>, but Lua is a much better fit for game scripting. Eight API modules give scripts access to everything: items, rooms, characters, NPCs, dialogs, quests, game messaging, utilities</li>
+          <li><strong>Auth0 integration</strong> — optional authentication, three roles (player, creator, admin)</li>
+          <li><strong>Docker deployment</strong> — single <code>docker compose up</code> gets you a running game server</li>
         </ul>
 
-        <h2>The Vision: Browser-Native MUDs</h2>
         <p>
-          The browser is the universal runtime. Every device has one. The best multiplayer games of the
-          next decade will be web-first — not because of technical necessity, but because accessibility
-          matters. If players have to install something, you lose most of them.
-        </p>
-        <p>
-          TalesMUD takes the MUD format — which is fundamentally text-based and works beautifully at low
-          bandwidth — and makes it entirely browser-native. Players connect via WebSocket. The game client
-          is a Svelte app. The server is a statically-linked Go binary with embedded assets that you can
-          run anywhere Docker runs.
+          The content pipeline is worth calling out specifically: world content is authored as
+          Markdown files and exported to YAML, which the server imports at startup. It's the same
+          approach static site generators use for content — file-based authoring, version-controlled,
+          diff-friendly. You can build an entire zone in a text editor and <code>git push</code> it.
         </p>
 
-        <h2>Veilspan: The Reference World</h2>
+        <h2>The Platform Vision</h2>
+
         <p>
-          To prove the concept, I built <a href="https://veilspan.com" target="_blank" rel="noopener">Veilspan</a> —
-          a fantasy world set in the ruins of Aethermoor. It's the official demo deployment of TalesMUD,
-          running live at <code>veilspan.com</code>.
-        </p>
-        <p>
-          Veilspan has real zones, real NPCs, real quests, real combat. It's not a tech demo — it's a
-          playable game that happens to document every feature of the framework in production.
-          If you want to see what TalesMUD can do, go play it.
+          The longer-term idea is bigger than just a framework. I want TalesMUD to be a
+          <em>platform</em> — something you can fork, customize, and run as your own game server.
+          A wild version of that involves Docker and Kubernetes APIs, spinning up isolated game
+          servers on demand. A simpler version is what already exists: clean import/export,
+          container images, and a content pipeline that's easy to version-control and hand off.
         </p>
 
-        <h2>What's Next</h2>
         <p>
-          TalesMUD is early — version 0.1. There's a lot to build:
+          The systems are deliberately genre-agnostic. Nothing in the combat engine requires
+          swords and magic. Nothing in the room system requires a fantasy setting. The same
+          framework that runs a medieval dungeon can run a sci-fi space station or a post-apocalyptic
+          wasteland — if you write the content for it.
         </p>
+
+        <p>
+          Adding TCP/telnet support is also still on the list. It would mean compatibility with the
+          classic MUD client ecosystem — clients that have had decades of development time and come
+          with their own scripting and mapping tools. The technical work isn't the hard part;
+          the hard part is that the current auth model relies entirely on Auth0 tokens, and TCP
+          clients don't do OAuth flows. A separate password-based auth path would need to exist first.
+        </p>
+
+        <h2>Veilspan: The Living Proof</h2>
+
+        <p>
+          The best way to know a framework works is to build something real with it.
+          <a href="https://veilspan.com" target="_blank" rel="noopener">Veilspan</a> is a
+          fantasy world set in the ruins of Aethermoor — real zones, real NPCs, real quests,
+          real combat. It's the official demo deployment of TalesMUD, running the current
+          development version live.
+        </p>
+
+        <p>
+          Go play it. See what the framework can actually do before you decide whether it's
+          worth building on.
+        </p>
+
+        <h2>Where It Goes From Here</h2>
+
+        <p>
+          TalesMUD is v0.1 and the core is solid. The things I want to build next:
+        </p>
+
         <ul>
-          <li>Party system (grouping and group combat)</li>
-          <li>Crafting system</li>
-          <li>More NPC AI states</li>
-          <li>World map visualization improvements</li>
-          <li>Better mobile UI</li>
-          <li>More scripting event hooks</li>
+          <li><strong>NPC AI state machine</strong> — patrol, flee, conversation-triggered behaviour</li>
+          <li><strong>Party system</strong> — grouped players, shared XP, group combat</li>
+          <li><strong>Crafting system</strong> — item creation from components</li>
+          <li><strong>Procedural dungeon generation</strong> — bringing dungeonsrv's work back in</li>
+          <li><strong>Global event system</strong> — scripted world events, scheduled triggers</li>
+          <li><strong>Faction system</strong> — reputation, faction-gated content</li>
+          <li><strong>Mobile client</strong> — UI elements (skill bar, directional pad) mapped to text commands under the hood</li>
         </ul>
+
         <p>
-          But the foundation is solid. The architecture is clean. The content pipeline works.
-          And Veilspan is the living proof.
+          If any of that sounds interesting — the code, the content, the ideas — I'd genuinely
+          love contributors. Whether that's opening issues, fixing bugs, writing a zone, or
+          building your own world and showing it off.
         </p>
 
-        <h2>Get Involved</h2>
         <p>
-          TalesMUD is fully open source under the MIT license.
-          The code is at <a href="https://github.com/TalesMUD/talesmud" target="_blank" rel="noopener">github.com/TalesMUD/talesmud</a>.
-          If you're interested in building text-based worlds, I'd love to have you contribute.
+          The source is at <a href="https://github.com/TalesMUD/talesmud" target="_blank" rel="noopener">github.com/TalesMUD/talesmud</a>.
+          Follow progress on <a href="https://x.com/atla_" target="_blank" rel="noopener">X (@atla_)</a>
+          or <a href="https://github.com/atla" target="_blank" rel="noopener">GitHub (@atla)</a>.
         </p>
+
         <p>
-          Whether that's opening issues, fixing bugs, writing docs, or building your own world and
-          showing it off — all of it helps grow the ecosystem.
+          Start with the <a href="/docs/getting-started/introduction">Getting Started guide</a> if you
+          want to run it. Or just <a href="https://veilspan.com" target="_blank" rel="noopener">play Veilspan</a>
+          first.
         </p>
-        <p>
-          Start with the <a href="/docs/getting-started/introduction">Getting Started guide</a>,
-          then go <a href="https://veilspan.com" target="_blank" rel="noopener">play Veilspan</a> to see what's possible.
+
+        <p style="margin-top: 2.5rem; color: var(--color-text-dim); font-style: italic;">
+          — atla
         </p>
+
       </div>
 
       <div class="blog-article-footer">
@@ -253,6 +425,11 @@ import Footer from '../../components/Footer.astro';
 
   .blog-article-body strong {
     color: var(--color-text);
+  }
+
+  .blog-article-body em {
+    color: var(--color-text);
+    font-style: italic;
   }
 
   .blog-article-footer {
