@@ -126,7 +126,7 @@ export default defineConfig({
           tag: 'meta',
           attrs: {
             property: 'og:title',
-            content: 'TalesMUD — Build Your Text World',
+            content: 'TalesMUD — Forge Your Own Tale',
           },
         },
         {
