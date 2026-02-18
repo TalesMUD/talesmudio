@@ -15,15 +15,20 @@ import Footer from '../components/Footer.astro';
     <canvas id="particles-canvas" class="hero-particles" aria-hidden="true"></canvas>
 
     <div class="hero-content">
-      <span class="hero-eyebrow">Open Source · Go + Svelte · Browser Native</span>
-      <h1 class="hero-title">
-        Build Your<br /><span class="accent">Text World</span>
+      <span class="hero-eyebrow hero-fade" style="--delay: 0">Open Source · Go + Svelte · Browser Native</span>
+      <h1 class="hero-title hero-fade" style="--delay: 1">
+        <span class="hero-title-static">Forge Your Own</span><br />
+        <span class="accent-rotate">
+          <span class="accent-rotate-word active">World</span>
+          <span class="accent-rotate-word">Adventure</span>
+          <span class="accent-rotate-word">Tale</span>
+        </span>
       </h1>
-      <p class="hero-subtitle">
+      <p class="hero-subtitle hero-fade" style="--delay: 2">
         An open-source framework for building browser-based Multi-User Dungeons.
         Go backend. Svelte frontend. Zero telnet required.
       </p>
-      <div class="hero-ctas">
+      <div class="hero-ctas hero-fade" style="--delay: 3">
         <a href="https://veilspan.com" class="btn btn-primary" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           Play the Demo
@@ -299,6 +304,17 @@ import Footer from '../components/Footer.astro';
 </Landing>
 
 <script>
+  // Rotating accent word
+  const words = document.querySelectorAll('.accent-rotate-word');
+  if (words.length > 0) {
+    let current = 0;
+    setInterval(() => {
+      words[current].classList.remove('active');
+      current = (current + 1) % words.length;
+      words[current].classList.add('active');
+    }, 3000);
+  }
+
   // Particle effect
   const canvas = document.getElementById('particles-canvas') as HTMLCanvasElement;
   if (canvas) {

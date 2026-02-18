@@ -116,7 +116,8 @@
 .hero-content {
   position: relative;
   z-index: 1;
-  max-width: 800px;
+  max-width: 900px;
+  width: 100%;
 }
 
 .hero-eyebrow {
@@ -127,21 +128,77 @@
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 1.5rem;
-  opacity: 0.8;
 }
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-size: clamp(2.8rem, 8vw, 6rem);
   font-weight: 700;
   line-height: 1.1;
   color: var(--color-text);
   margin: 0 0 1.5rem;
-  text-shadow: 0 0 60px rgba(245, 166, 35, 0.15);
+  text-shadow: 0 0 80px rgba(245, 166, 35, 0.2);
 }
 
-.hero-title .accent {
+.hero-title-static {
+  white-space: nowrap;
+}
+
+/* --- ROTATING ACCENT WORD --- */
+.accent-rotate {
+  display: inline-block;
+  position: relative;
+  min-width: 5ch;
+}
+
+.accent-rotate-word {
   color: var(--color-amber);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.6s ease, filter 0.6s ease, transform 0.6s ease;
+  transform: translateX(-50%) translateY(10px);
+  animation: accentGlow 3s ease-in-out infinite;
+}
+
+.accent-rotate-word.active {
+  position: relative;
+  left: auto;
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+}
+
+@keyframes accentGlow {
+  0%, 100% {
+    text-shadow:
+      0 0 20px rgba(245, 166, 35, 0.3),
+      0 0 60px rgba(245, 166, 35, 0.1);
+  }
+  50% {
+    text-shadow:
+      0 0 30px rgba(245, 166, 35, 0.5),
+      0 0 80px rgba(245, 166, 35, 0.2),
+      0 0 120px rgba(245, 166, 35, 0.1);
+  }
+}
+
+/* --- HERO ENTRANCE ANIMATIONS --- */
+.hero-fade {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: heroFadeIn 0.8s ease forwards;
+  animation-delay: calc(var(--delay, 0) * 0.15s + 0.2s);
+}
+
+@keyframes heroFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .hero-subtitle {
@@ -204,7 +261,7 @@
   border: 1px solid rgba(56, 189, 248, 0.2);
   border-radius: 10px;
   overflow: hidden;
-  max-width: 700px;
+  max-width: 900px;
   width: 100%;
   box-shadow:
     0 0 0 1px rgba(56, 189, 248, 0.05),
@@ -241,10 +298,10 @@
 }
 
 .terminal-body {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
-  line-height: 1.8;
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 
 .terminal-prompt {
