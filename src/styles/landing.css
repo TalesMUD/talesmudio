@@ -255,6 +255,12 @@
   transform: translateY(-1px);
 }
 
+/* --- TERMINAL CONTAINER --- */
+#terminal-container {
+  width: 100%;
+  max-width: 900px;
+}
+
 /* --- TERMINAL DEMO --- */
 .terminal {
   background: #0d0d14;

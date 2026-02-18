@@ -2,6 +2,7 @@
 import Landing from '../layouts/Landing.astro';
 import Nav from '../components/Nav.astro';
 import TerminalDemo from '../components/TerminalDemo.astro';
+import LiveTerminal from '../components/LiveTerminal.svelte';
 import ArchitectureDiagram from '../components/ArchitectureDiagram.astro';
 import Footer from '../components/Footer.astro';
 ---
@@ -38,7 +39,12 @@ import Footer from '../components/Footer.astro';
         </a>
       </div>
 
-      <TerminalDemo />
+      <div id="terminal-container">
+        <div id="static-terminal">
+          <TerminalDemo />
+        </div>
+        <LiveTerminal client:idle />
+      </div>
     </div>
   </section>
 

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import svelte from '@astrojs/svelte';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   integrations: [
+    svelte(),
     starlight({
       title: 'TalesMUD',
       description: 'An open-source framework for building browser-based Multi-User Dungeons. Go backend, Svelte frontend, zero telnet required.',
